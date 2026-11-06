@@ -317,57 +317,59 @@
                   <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 100%; box-sizing: border-box;">
 
                     <!-- SECTION 1: Analyzed Screenplay Breakdown (Characters & Persons Identified) -->
-                    <div style="background: #111216; padding: 18px; border-radius: 8px; border-left: 4px solid #5B9CF6; width: 100%; max-width: 100%; box-sizing: border-box;">
-                      <h4 style="color: #5B9CF6; font-size: 0.98rem; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="background: #111216; padding: 14px 16px; border-radius: 8px; border-left: 4px solid #5B9CF6; width: 100%; max-width: 100%; box-sizing: border-box;">
+                      <h4 style="color: #5B9CF6; font-size: 0.92rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                         <span>👥 Characters & Persons Identified</span>
                         <span id="analysis-char-count" class="badge badge-blue">0</span>
                       </h4>
-                      <div id="analysis-characters-list" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; box-sizing: border-box;">
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">No characters detected yet.</p>
+                      <div id="analysis-characters-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; width: 100%; max-width: 100%; box-sizing: border-box; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                        <p style="color: var(--text-muted); font-size: 0.82rem;">No characters detected yet.</p>
                       </div>
                     </div>
 
                     <!-- SECTION 2: Physical Places & Locations (Directly below Analyzed Screenplay Breakdown, full width) -->
-                    <div style="background: #111216; padding: 18px; border-radius: 8px; border-left: 4px solid var(--accent); width: 100%; max-width: 100%; box-sizing: border-box;">
-                      <h4 style="color: var(--accent); font-size: 0.98rem; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="background: #111216; padding: 14px 16px; border-radius: 8px; border-left: 4px solid var(--accent); width: 100%; max-width: 100%; box-sizing: border-box;">
+                      <h4 style="color: var(--accent); font-size: 0.92rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                         <span>📍 Physical Places & Locations</span>
                         <span id="analysis-loc-count" class="badge badge-gold">0</span>
                       </h4>
-                      <div id="analysis-locations-list" style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; box-sizing: border-box;">
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">No physical places detected yet.</p>
+                      <div id="analysis-locations-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; width: 100%; max-width: 100%; box-sizing: border-box; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                        <p style="color: var(--text-muted); font-size: 0.82rem;">No physical places detected yet.</p>
                       </div>
                     </div>
 
                     <!-- SECTION 3: Visual Storyboards, Characters, and Flow (Following below locations) -->
-                    <div style="background: #111216; padding: 18px; border-radius: 8px; border-left: 4px solid #4EBA74; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden;">
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div style="background: #111216; padding: 14px 16px; border-radius: 8px; border-left: 4px solid #4EBA74; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div>
-                          <h4 style="color: #4EBA74; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                          <h4 style="color: #4EBA74; font-size: 0.98rem; display: flex; align-items: center; gap: 8px;">
                             <span>🎬</span> Visual Storyboards, Characters, and Flow
                           </h4>
-                          <p style="color: var(--text-secondary); font-size: 0.82rem; margin-top: 3px;">
+                          <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 2px;">
                             Step-by-step visual scene sequence diagram illustrating how characters, conflicts, and physical sets interact.
                           </p>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
                           <span class="badge badge-green" id="storyboard-status-badge">Live Storyboard</span>
-                          <!-- Smooth Horizontal Navigation Controls -->
+                          <!-- Smooth Horizontal Navigation Controls: Exactly shifts by 3 frames on click -->
                           <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.scrollStoryboard(-280)" title="Previous Frame" style="padding: 6px 14px; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                              ◀
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.scrollStoryboard(-1)" title="Previous 3 Frames" style="padding: 5px 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer;">
+                              ◀ Prev
                             </button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.scrollStoryboard(280)" title="Next Frame" style="padding: 6px 14px; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                              ▶
+                            <button type="button" class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.scrollStoryboard(1)" title="Next 3 Frames" style="padding: 5px 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer;">
+                              Next 3 Frames ▶
                             </button>
                           </div>
                         </div>
                       </div>
 
-                      <!-- Horizontal Sequence Container (Strictly contained, smoothly scrollable) -->
+                      <!-- Horizontal Sequence Container (Strictly contained, 4 frames visible on 100% standard screen) -->
                       <div style="position: relative; width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box;">
-                        <div id="storyboard-diagram-track" style="display: flex; gap: 16px; overflow-x: auto; padding: 8px 4px 16px 4px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--accent) #1A1C23;">
+                        <div id="storyboard-diagram-track" style="display: flex; gap: 12px; overflow-x: auto; padding: 6px 2px 12px 2px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--accent) #1A1C23;">
                           <!-- Dynamically rendered visual storyboard cards with character avatars & location scenes -->
                         </div>
+                      </div>
+                    </div>
                       </div>
                     </div>
 

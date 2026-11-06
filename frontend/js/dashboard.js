@@ -616,22 +616,22 @@ const ScreenwritingStudio = {
       if (activeChars.length === 0 && characters.length > 0) activeChars.push(characters[0]);
 
       return `
-        <div style="flex: 0 0 260px; background: #131418; border: 1px solid #2B2E3A; border-radius: 8px; padding: 14px; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <div class="storyboard-frame-card" style="flex: 0 0 calc((100% - 36px) / 4); min-width: 200px; max-width: 280px; background: #131418; border: 1px solid #2B2E3A; border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3); box-sizing: border-box;">
           <!-- Storyboard Frame Header -->
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="badge badge-gold" style="font-size: 0.68rem; font-weight: 700;">FRAME ${sceneNum}</span>
-              <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">${idx === steps.length - 1 ? '🏁 CLIMAX' : '➔ TRANSITION'}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="badge badge-gold" style="font-size: 0.65rem; font-weight: 700;">FRAME ${sceneNum}</span>
+              <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">${idx === steps.length - 1 ? '🏁 CLIMAX' : '➔ NEXT'}</span>
             </div>
 
             <!-- Location / Scene Heading -->
-            <h5 style="color: var(--accent); font-size: 0.92rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <span>📍</span> ${Workspace.escapeHtml(loc)}
+            <h5 style="color: var(--accent); font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${Workspace.escapeHtml(loc)}">
+              <span>📍</span> <span style="overflow: hidden; text-overflow: ellipsis;">${Workspace.escapeHtml(loc)}</span>
             </h5>
 
             <!-- Story Visual Frame Canvas -->
-            <div style="background: #0B0C0E; border: 1px solid #22252F; border-radius: 6px; padding: 10px; margin-bottom: 10px; min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
-              <p style="font-size: 0.8rem; color: #D1D5DB; line-height: 1.5; font-style: italic; margin: 0;">
+            <div style="background: #0B0C0E; border: 1px solid #22252F; border-radius: 6px; padding: 8px; margin-bottom: 8px; min-height: 65px; display: flex; flex-direction: column; justify-content: center;">
+              <p style="font-size: 0.75rem; color: #D1D5DB; line-height: 1.4; font-style: italic; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                 "${Workspace.escapeHtml(shortSnippet)}"
               </p>
             </div>
@@ -639,14 +639,14 @@ const ScreenwritingStudio = {
 
           <!-- Character Interaction Cast in Frame -->
           <div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-              Cast in Frame:
+            <div style="font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+              Cast:
             </div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
               ${activeChars.map(c => `
-                <div style="display: inline-flex; align-items: center; gap: 4px; background: #1F222C; padding: 4px 8px; border-radius: 4px; border: 1px solid #333846; font-size: 0.75rem;">
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: #1F222C; padding: 2px 6px; border-radius: 4px; border: 1px solid #333846; font-size: 0.7rem; max-width: 100%;">
                   <span>${getAvatar(c.name || c.type)}</span>
-                  <span style="color: #F3F4F6; font-weight: 600;">${Workspace.escapeHtml(c.name)}</span>
+                  <span style="color: #F3F4F6; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${Workspace.escapeHtml(c.name)}</span>
                 </div>
               `).join('')}
             </div>
@@ -655,17 +655,29 @@ const ScreenwritingStudio = {
       `;
     }).join(`
       <!-- Visual Connector Arrow -->
-      <div style="display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.4rem; padding: 0 4px; opacity: 0.8;">
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem; padding: 0 2px; opacity: 0.7; flex-shrink: 0;">
         ➔
       </div>
     `);
   },
 
-  scrollStoryboard(offset) {
+  scrollStoryboard(direction) {
     const track = document.getElementById('storyboard-diagram-track');
-    if (track) {
-      track.scrollBy({ left: offset, behavior: 'smooth' });
+    if (!track) return;
+
+    // Calculate distance of 3 cards + gaps to move exactly 3 frames forward or backward
+    const frameCard = track.querySelector('.storyboard-frame-card');
+    let scrollAmount = 660; // fallback default
+    if (frameCard) {
+      const cardWidth = frameCard.getBoundingClientRect().width;
+      // 3 cards plus gap and arrow connectors (approx ~12px each)
+      scrollAmount = (cardWidth + 20) * 3;
+    } else if (typeof direction === 'number' && Math.abs(direction) > 10) {
+      scrollAmount = Math.abs(direction);
     }
+
+    const offset = direction > 0 ? scrollAmount : -scrollAmount;
+    track.scrollBy({ left: offset, behavior: 'smooth' });
   },
 
   async autoSyncBreakdownToProject(locationsSet, charactersList, fullText) {
