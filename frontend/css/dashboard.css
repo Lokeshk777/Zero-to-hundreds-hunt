@@ -33,6 +33,10 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Sidebar */
@@ -48,6 +52,7 @@
   left: 0;
   z-index: 100;
   transition: var(--transition);
+  box-sizing: border-box;
 }
 
 .sidebar-header {
@@ -185,7 +190,11 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: calc(100% - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
   background: var(--bg-main);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .top-bar {
@@ -200,6 +209,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .top-bar-title h1 {
@@ -217,6 +229,10 @@
 .workspace-content {
   flex: 1;
   padding: 32px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .module-container {
