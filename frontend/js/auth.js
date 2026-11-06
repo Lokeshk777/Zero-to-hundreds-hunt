@@ -115,12 +115,11 @@ function initSignupForm() {
         confirmPassword
       });
 
-      // Automatically authenticate and save session
-      Auth.setSession(response.data, true);
-      showToast('Account created successfully! Welcome to the studio.', 'success');
+      // Account created - do NOT auto-login, redirect to login page!
+      showToast('Account created successfully! Please log in with your credentials.', 'success');
 
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'login.html';
       }, 1200);
 
     } catch (err) {

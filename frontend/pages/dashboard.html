@@ -55,11 +55,20 @@
       </div>
     </aside>
 
+    <!-- Mobile Drawer Overlay -->
+    <div id="mobile-overlay" class="mobile-nav-overlay" onclick="Workspace.toggleMobileMenu()"></div>
+
     <!-- Main Workspace Content -->
     <div class="main-wrapper">
       <header class="top-bar">
-        <div class="top-bar-title">
-          <h1 id="topbar-title">Dashboard</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Mobile Hamburger Menu Button -->
+          <button id="mobile-menu-btn" class="mobile-toggle-btn" onclick="Workspace.toggleMobileMenu()" title="Open Menu">
+            ☰
+          </button>
+          <div class="top-bar-title">
+            <h1 id="topbar-title">Dashboard</h1>
+          </div>
         </div>
         <div class="top-bar-actions">
           <button class="btn btn-secondary btn-sm" id="btn-quick-vault" onclick="Workspace.openQuickIdeaModal()">

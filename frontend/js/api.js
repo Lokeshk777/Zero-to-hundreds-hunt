@@ -250,6 +250,22 @@ const Api = {
       // /screenplays/:id/characters
       if (parts[2] === 'characters') {
         let chars = LocalDB.get('characters_' + targetId, []);
+        if (parts.length === 4) {
+          const charId = Number(parts[3]);
+          if (method === 'PUT') {
+            const idx = chars.findIndex(c => c.id === charId);
+            if (idx !== -1) {
+              chars[idx] = { ...chars[idx], ...body };
+              LocalDB.set('characters_' + targetId, chars);
+              return { data: chars[idx], message: 'Character updated' };
+            }
+          }
+          if (method === 'DELETE') {
+            chars = chars.filter(c => c.id !== charId);
+            LocalDB.set('characters_' + targetId, chars);
+            return { message: 'Character deleted' };
+          }
+        }
         if (method === 'POST') {
           const newChar = { id: Date.now(), ...body };
           chars.push(newChar);
@@ -262,6 +278,26 @@ const Api = {
       // /screenplays/:id/scenes
       if (parts[2] === 'scenes') {
         let scenes = LocalDB.get('scenes_' + targetId, []);
+        if (parts.length === 4) {
+          const sceneId = Number(parts[3]);
+          if (method === 'PUT') {
+            const idx = scenes.findIndex(s => s.id === sceneId);
+            if (idx !== -1) {
+              scenes[idx] = { 
+                ...scenes[idx], 
+                ...body,
+                sceneHeading: `${body.headingType || 'INT.'} ${body.location || 'ROOM'} - ${body.timeOfDay || 'DAY'}` 
+              };
+              LocalDB.set('scenes_' + targetId, scenes);
+              return { data: scenes[idx], message: 'Scene updated' };
+            }
+          }
+          if (method === 'DELETE') {
+            scenes = scenes.filter(s => s.id !== sceneId);
+            LocalDB.set('scenes_' + targetId, scenes);
+            return { message: 'Scene deleted' };
+          }
+        }
         if (method === 'POST') {
           const newScene = { id: Date.now(), ...body, sceneHeading: `${body.headingType || 'INT.'} ${body.location || 'ROOM'} - ${body.timeOfDay || 'DAY'}` };
           scenes.push(newScene);

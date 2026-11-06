@@ -65,6 +65,14 @@ const Workspace = {
   switchModule(moduleName) {
     this.activeModule = moduleName;
 
+    // Close mobile menu if open
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+      sidebar.classList.remove('mobile-open');
+    }
+    if (overlay) overlay.classList.remove('active');
+
     // Update sidebar nav items
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
       if (el.getAttribute('data-module') === moduleName) {
@@ -199,6 +207,13 @@ const Workspace = {
     document.getElementById('prof-username').value = user.username || '';
     document.getElementById('prof-bio').value = user.bio || '';
     this.openModal('modal-profile');
+  },
+
+  toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    if (sidebar) sidebar.classList.toggle('mobile-open');
+    if (overlay) overlay.classList.toggle('active');
   },
 
   async updateUserProfile() {
@@ -565,15 +580,18 @@ const ScreenwritingStudio = {
         const existingScenes = existingScenesRes.data || [];
         const existingLocs = new Set(existingScenes.map(s => (s.location || '').toUpperCase()));
 
-        // Extract action sentences from full text
-        const sentences = fullText.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 15);
+        // Extract clean action sentences from full text (stripping markdown/HTML/special characters)
+        const cleanFullText = fullText.replace(/<[^>]*>/g, ' ').replace(/[#*`~_]/g, '').replace(/\s+/g, ' ');
+        const sentences = cleanFullText.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 15);
         let sceneNum = existingScenes.length + 1;
 
         for (const loc of locArray) {
           const upperLoc = loc.toUpperCase();
           if (!existingLocs.has(upperLoc)) {
-            // Find sentences where this location is mentioned
-            const matchingAction = sentences.find(s => s.toUpperCase().includes(upperLoc)) || `Action unfolds in ${loc}.`;
+            // Find sentences where this location is mentioned and sanitize special characters
+            let rawAction = sentences.find(s => s.toUpperCase().includes(upperLoc)) || `Action unfolds in ${loc}.`;
+            // Strip any remaining special characters or HTML entities
+            const matchingAction = rawAction.replace(/&[a-z0-9#]+;/gi, ' ').replace(/[^\w\s.,!?'"-]/gi, '').trim();
             const characterNames = charactersList.map(c => c.name).filter(n => n.length > 2).slice(0, 3).join(', ') || 'Characters';
 
             const newScenePayload = {
@@ -677,19 +695,21 @@ const ScreenwritingStudio = {
   },
 
   // Characters
+  charactersData: [],
   async loadCharacters() {
     if (!this.currentScreenplayId) return;
     try {
       const res = await Api.getCharacters(this.currentScreenplayId);
+      this.charactersData = res.data || [];
       const grid = document.getElementById('characters-list-grid');
       if (!grid) return;
 
-      if (!res.data || res.data.length === 0) {
+      if (!this.charactersData || this.charactersData.length === 0) {
         grid.innerHTML = '<p style="color: var(--text-muted);">No characters created yet. Click "+ Add Character" to begin.</p>';
         return;
       }
 
-      grid.innerHTML = res.data.map(c => `
+      grid.innerHTML = this.charactersData.map(c => `
         <div class="card-panel" style="margin-bottom: 0; background: #151619;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h4 style="font-size: 1.1rem; color: var(--text-primary);">${Workspace.escapeHtml(c.name)}</h4>
@@ -699,7 +719,7 @@ const ScreenwritingStudio = {
           <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 6px;"><strong>Motivation:</strong> ${Workspace.escapeHtml(c.motivation || 'N/A')}</p>
           <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 6px;"><strong>Arc:</strong> ${Workspace.escapeHtml(c.characterArc || 'N/A')}</p>
           <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end;">
-            <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editCharacter(${JSON.stringify(c).replace(/"/g, '&quot;')})">Edit</button>
+            <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editCharacterById(${c.id})">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="ScreenwritingStudio.deleteCharacter(${c.id})">Delete</button>
           </div>
         </div>
@@ -720,7 +740,10 @@ const ScreenwritingStudio = {
     Workspace.openModal('modal-character');
   },
 
-  editCharacter(c) {
+  editCharacterById(charId) {
+    const c = this.charactersData.find(item => item.id === charId);
+    if (c) this.editCharacter(c);
+  },
     document.getElementById('char-edit-id').value = c.id;
     document.getElementById('char-name').value = c.name;
     document.getElementById('char-role').value = c.roleType;
@@ -782,24 +805,26 @@ const ScreenwritingStudio = {
   },
 
   // Scenes
+  scenesData: [],
   async loadScenes() {
     if (!this.currentScreenplayId) return;
     try {
       const res = await Api.getScenes(this.currentScreenplayId);
+      this.scenesData = res.data || [];
       const container = document.getElementById('scenes-list-container');
       if (!container) return;
 
-      if (!res.data || res.data.length === 0) {
+      if (!this.scenesData || this.scenesData.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No scenes created yet. Break down your first scene!</p>';
         return;
       }
 
-      container.innerHTML = res.data.map(s => `
+      container.innerHTML = this.scenesData.map(s => `
         <div class="card-panel" style="margin-bottom: 0; background: #151619;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <strong style="color: var(--accent); font-size: 1.05rem;">SCENE ${s.sceneNumber}: ${Workspace.escapeHtml(s.sceneHeading)}</strong>
             <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editScene(${JSON.stringify(s).replace(/"/g, '&quot;')})">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editSceneById(${s.id})">Edit</button>
               <button class="btn btn-danger btn-sm" onclick="ScreenwritingStudio.deleteScene(${s.id})">Delete</button>
             </div>
           </div>
@@ -824,7 +849,10 @@ const ScreenwritingStudio = {
     Workspace.openModal('modal-scene');
   },
 
-  editScene(s) {
+  editSceneById(sceneId) {
+    const s = this.scenesData.find(item => item.id === sceneId);
+    if (s) this.editScene(s);
+  },
     document.getElementById('scene-edit-id').value = s.id;
     document.getElementById('scene-number').value = s.sceneNumber;
     document.getElementById('scene-heading-type').value = s.headingType;
