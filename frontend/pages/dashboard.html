@@ -678,6 +678,13 @@ Dialogue goes here.
         </div>
         <button type="submit" class="btn btn-secondary" style="width: 100%;">UPDATE PASSWORD</button>
       </form>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0 16px 0;">
+
+      <!-- Sign Out Button inside Profile Modal -->
+      <button type="button" class="btn btn-danger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700;" onclick="Auth.clearSession(); showToast('Signed out successfully.', 'info'); setTimeout(() => window.location.href = 'login.html', 500);">
+        <span>🚪</span> SIGN OUT OF STUDIO
+      </button>
     </div>
   </div>
 
