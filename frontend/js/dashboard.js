@@ -744,6 +744,8 @@ const ScreenwritingStudio = {
     const c = this.charactersData.find(item => item.id === charId);
     if (c) this.editCharacter(c);
   },
+
+  editCharacter(c) {
     document.getElementById('char-edit-id').value = c.id;
     document.getElementById('char-name').value = c.name;
     document.getElementById('char-role').value = c.roleType;
@@ -853,6 +855,8 @@ const ScreenwritingStudio = {
     const s = this.scenesData.find(item => item.id === sceneId);
     if (s) this.editScene(s);
   },
+
+  editScene(s) {
     document.getElementById('scene-edit-id').value = s.id;
     document.getElementById('scene-number').value = s.sceneNumber;
     document.getElementById('scene-heading-type').value = s.headingType;
