@@ -535,9 +535,9 @@ const ScreenwritingStudio = {
     // Render Characters
     if (detectedCharacters.length > 0) {
       charListEl.innerHTML = detectedCharacters.map(c => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; width: 100%; box-sizing: border-box; overflow: hidden; gap: 8px;">
-          <strong style="color: #F3F4F6; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${Workspace.escapeHtml(c.name)}">${Workspace.escapeHtml(c.name)}</strong>
-          <span class="badge badge-blue" style="font-size: 0.68rem; flex-shrink: 0; white-space: nowrap;">${c.type}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 8px 12px; border-radius: 6px; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; gap: 6px;">
+          <strong style="color: #F3F4F6; font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; word-break: break-all;" title="${Workspace.escapeHtml(c.name)}">${Workspace.escapeHtml(c.name)}</strong>
+          <span class="badge badge-blue" style="font-size: 0.65rem; flex-shrink: 0; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis;">${c.type}</span>
         </div>
       `).join('');
       charCountEl.textContent = detectedCharacters.length;
@@ -550,9 +550,9 @@ const ScreenwritingStudio = {
     const locArray = Array.from(detectedLocations);
     if (locArray.length > 0) {
       locListEl.innerHTML = locArray.map(loc => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; width: 100%; box-sizing: border-box; overflow: hidden; gap: 8px;">
-          <strong style="color: var(--accent); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${Workspace.escapeHtml(loc)}">📍 ${Workspace.escapeHtml(loc)}</strong>
-          <span class="badge badge-gold" style="font-size: 0.68rem; flex-shrink: 0; white-space: nowrap;">Location</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 8px 12px; border-radius: 6px; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; gap: 6px;">
+          <strong style="color: var(--accent); font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; word-break: break-all;" title="${Workspace.escapeHtml(loc)}">📍 ${Workspace.escapeHtml(loc)}</strong>
+          <span class="badge badge-gold" style="font-size: 0.65rem; flex-shrink: 0; white-space: nowrap;">Location</span>
         </div>
       `).join('');
       locCountEl.textContent = locArray.length;
