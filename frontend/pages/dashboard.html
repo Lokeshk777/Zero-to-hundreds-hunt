@@ -323,8 +323,11 @@
                           <span>👥 Characters & Persons Identified</span>
                           <span id="analysis-char-count" class="badge badge-blue">0</span>
                         </h4>
-                        <!-- Navigation scroll buttons for Characters -->
-                        <div style="display: flex; gap: 6px;">
+                        <!-- Action & scroll buttons for Characters -->
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.openAddBreakdownCharacterModal()" title="Add Character" style="padding: 3px 8px; font-size: 0.8rem; font-weight: 600;">
+                            + Add
+                          </button>
                           <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('analysis-characters-list').scrollBy({left: -260, behavior: 'smooth'})" title="Move Left" style="padding: 3px 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
                             ◀
                           </button>
@@ -345,8 +348,11 @@
                           <span>📍 Physical Places & Locations</span>
                           <span id="analysis-loc-count" class="badge badge-gold">0</span>
                         </h4>
-                        <!-- Navigation scroll buttons for Locations -->
-                        <div style="display: flex; gap: 6px;">
+                        <!-- Action & scroll buttons for Locations -->
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.openAddBreakdownLocationModal()" title="Add Location" style="padding: 3px 8px; font-size: 0.8rem; font-weight: 600;">
+                            + Add
+                          </button>
                           <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('analysis-locations-list').scrollBy({left: -260, behavior: 'smooth'})" title="Move Left" style="padding: 3px 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
                             ◀
                           </button>

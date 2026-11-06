@@ -457,13 +457,12 @@ const ScreenwritingStudio = {
     }
   },
 
+  currentBreakdownCharacters: [],
+  currentBreakdownLocations: [],
+
   analyzeAndDisplayBreakdown(rawSynopsis, rawConcept) {
     const combinedText = (rawSynopsis + ' ' + rawConcept).replace(/<[^>]*>/g, ' '); // Strip HTML tags
     const panel = document.getElementById('screenplay-analysis-panel');
-    const charListEl = document.getElementById('analysis-characters-list');
-    const locListEl = document.getElementById('analysis-locations-list');
-    const charCountEl = document.getElementById('analysis-char-count');
-    const locCountEl = document.getElementById('analysis-loc-count');
     const timeBadge = document.getElementById('analysis-time-badge');
 
     if (!panel) return;
@@ -508,7 +507,7 @@ const ScreenwritingStudio = {
 
     personRoles.forEach(role => {
       if (role.regex.test(lowerText)) {
-        detectedCharacters.push(role);
+        detectedCharacters.push({ name: role.name, type: role.type });
       }
     });
 
@@ -532,43 +531,127 @@ const ScreenwritingStudio = {
       });
     });
 
-    // Render Characters
-    if (detectedCharacters.length > 0) {
-      charListEl.innerHTML = detectedCharacters.map(c => `
-        <div style="flex: 0 0 240px; display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; box-sizing: border-box; overflow: hidden; gap: 8px; border: 1px solid #2B2E3A; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
-          <strong style="color: #F3F4F6; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${Workspace.escapeHtml(c.name)}">${Workspace.escapeHtml(c.name)}</strong>
-          <span class="badge badge-blue" style="font-size: 0.68rem; flex-shrink: 0; white-space: nowrap;">${c.type}</span>
-        </div>
-      `).join('');
-      charCountEl.textContent = detectedCharacters.length;
-    } else {
-      charListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Describe characters (e.g. Detective, A young woman, Doctor) to populate here.</p>';
-      charCountEl.textContent = '0';
-    }
+    this.currentBreakdownCharacters = detectedCharacters;
+    this.currentBreakdownLocations = Array.from(detectedLocations);
 
-    // Render Locations
-    const locArray = Array.from(detectedLocations);
-    if (locArray.length > 0) {
-      locListEl.innerHTML = locArray.map(loc => `
-        <div style="flex: 0 0 240px; display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; box-sizing: border-box; overflow: hidden; gap: 8px; border: 1px solid #2B2E3A; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
-          <strong style="color: var(--accent); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${Workspace.escapeHtml(loc)}">📍 ${Workspace.escapeHtml(loc)}</strong>
-          <span class="badge badge-gold" style="font-size: 0.68rem; flex-shrink: 0; white-space: nowrap;">Location</span>
-        </div>
-      `).join('');
-      locCountEl.textContent = locArray.length;
-    } else {
-      locListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Mention physical places (e.g. Hospital, Apartment, Rooftop) to populate here.</p>';
-      locCountEl.textContent = '0';
-    }
+    this.renderBreakdownView();
 
     if (timeBadge) timeBadge.textContent = 'Analyzed at ' + new Date().toLocaleTimeString();
     panel.style.display = 'block';
 
-    // RENDER VISUAL STORYBOARD & CHARACTER FLOW DIAGRAM
-    this.renderStoryboardDiagram(locArray, detectedCharacters, combinedText);
-
-    // AUTO-CREATE AND SAVE SCENES & CHARACTERS AUTOMATICALLY (No manual entry required!)
+    // AUTO-CREATE AND SAVE SCENES & CHARACTERS AUTOMATICALLY
     this.autoSyncBreakdownToProject(detectedLocations, detectedCharacters, combinedText);
+  },
+
+  renderBreakdownView() {
+    const charListEl = document.getElementById('analysis-characters-list');
+    const locListEl = document.getElementById('analysis-locations-list');
+    const charCountEl = document.getElementById('analysis-char-count');
+    const locCountEl = document.getElementById('analysis-loc-count');
+
+    // 1. Render Characters with Edit and Delete options
+    if (this.currentBreakdownCharacters.length > 0) {
+      charListEl.innerHTML = this.currentBreakdownCharacters.map((c, idx) => `
+        <div style="flex: 0 0 260px; display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; box-sizing: border-box; overflow: hidden; gap: 8px; border: 1px solid #2B2E3A; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+          <div style="flex: 1; min-width: 0; overflow: hidden;">
+            <strong style="color: #F3F4F6; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;" title="${Workspace.escapeHtml(c.name)}">${Workspace.escapeHtml(c.name)}</strong>
+            <span class="badge badge-blue" style="font-size: 0.65rem; white-space: nowrap;">${c.type}</span>
+          </div>
+          <div style="display: flex; gap: 4px; flex-shrink: 0;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editBreakdownCharacter(${idx})" title="Edit Character" style="padding: 2px 6px; font-size: 0.72rem;">✏️</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="ScreenwritingStudio.deleteBreakdownCharacter(${idx})" title="Delete Character" style="padding: 2px 6px; font-size: 0.72rem;">✕</button>
+          </div>
+        </div>
+      `).join('');
+      if (charCountEl) charCountEl.textContent = this.currentBreakdownCharacters.length;
+    } else {
+      charListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No characters currently identified. Click "+ Add" to add one.</p>';
+      if (charCountEl) charCountEl.textContent = '0';
+    }
+
+    // 2. Render Locations with Edit and Delete options
+    if (this.currentBreakdownLocations.length > 0) {
+      locListEl.innerHTML = this.currentBreakdownLocations.map((loc, idx) => `
+        <div style="flex: 0 0 260px; display: flex; justify-content: space-between; align-items: center; background: #1C1E26; padding: 10px 14px; border-radius: 6px; box-sizing: border-box; overflow: hidden; gap: 8px; border: 1px solid #2B2E3A; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+          <div style="flex: 1; min-width: 0; overflow: hidden;">
+            <strong style="color: var(--accent); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;" title="${Workspace.escapeHtml(loc)}">📍 ${Workspace.escapeHtml(loc)}</strong>
+            <span class="badge badge-gold" style="font-size: 0.65rem; white-space: nowrap;">Location</span>
+          </div>
+          <div style="display: flex; gap: 4px; flex-shrink: 0;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.editBreakdownLocation(${idx})" title="Edit Location" style="padding: 2px 6px; font-size: 0.72rem;">✏️</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="ScreenwritingStudio.deleteBreakdownLocation(${idx})" title="Delete Location" style="padding: 2px 6px; font-size: 0.72rem;">✕</button>
+          </div>
+        </div>
+      `).join('');
+      if (locCountEl) locCountEl.textContent = this.currentBreakdownLocations.length;
+    } else {
+      locListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No physical places identified. Click "+ Add" to add one.</p>';
+      if (locCountEl) locCountEl.textContent = '0';
+    }
+
+    // Update Storyboard to reflect edited or deleted characters & locations
+    const synVal = document.getElementById('sp-synopsis')?.value || '';
+    const conceptVal = document.getElementById('sp-concept')?.value || '';
+    this.renderStoryboardDiagram(this.currentBreakdownLocations, this.currentBreakdownCharacters, (synVal + ' ' + conceptVal));
+  },
+
+  openAddBreakdownCharacterModal() {
+    const newName = prompt('Enter Character Name:');
+    if (!newName || !newName.trim()) return;
+    const newRole = prompt('Enter Character Role/Type (e.g. Lead, Detective, Mentor):', 'Lead Character') || 'Identified Character';
+    this.currentBreakdownCharacters.push({ name: newName.trim(), type: newRole.trim() });
+    this.renderBreakdownView();
+    showToast(`Character "${newName.trim()}" added to breakdown.`, 'success');
+  },
+
+  editBreakdownCharacter(idx) {
+    const c = this.currentBreakdownCharacters[idx];
+    if (!c) return;
+    const updatedName = prompt('Edit Character Name:', c.name);
+    if (!updatedName || !updatedName.trim()) return;
+    const updatedType = prompt('Edit Character Role/Type:', c.type) || c.type;
+    c.name = updatedName.trim();
+    c.type = updatedType.trim();
+    this.renderBreakdownView();
+    showToast(`Character updated to "${c.name}".`, 'success');
+  },
+
+  deleteBreakdownCharacter(idx) {
+    const c = this.currentBreakdownCharacters[idx];
+    if (!c) return;
+    if (confirm(`Are you sure you want to delete character "${c.name}" from the breakdown?`)) {
+      this.currentBreakdownCharacters.splice(idx, 1);
+      this.renderBreakdownView();
+      showToast(`Character "${c.name}" deleted.`, 'info');
+    }
+  },
+
+  openAddBreakdownLocationModal() {
+    const newLoc = prompt('Enter Physical Place / Location (e.g. ROOFTOP, HOSPITAL):');
+    if (!newLoc || !newLoc.trim()) return;
+    this.currentBreakdownLocations.push(newLoc.trim().toUpperCase());
+    this.renderBreakdownView();
+    showToast(`Location "${newLoc.trim().toUpperCase()}" added to breakdown.`, 'success');
+  },
+
+  editBreakdownLocation(idx) {
+    const loc = this.currentBreakdownLocations[idx];
+    if (!loc) return;
+    const updatedLoc = prompt('Edit Location Name:', loc);
+    if (!updatedLoc || !updatedLoc.trim()) return;
+    this.currentBreakdownLocations[idx] = updatedLoc.trim().toUpperCase();
+    this.renderBreakdownView();
+    showToast(`Location updated to "${this.currentBreakdownLocations[idx]}".`, 'success');
+  },
+
+  deleteBreakdownLocation(idx) {
+    const loc = this.currentBreakdownLocations[idx];
+    if (!loc) return;
+    if (confirm(`Are you sure you want to delete location "${loc}" from the breakdown?`)) {
+      this.currentBreakdownLocations.splice(idx, 1);
+      this.renderBreakdownView();
+      showToast(`Location "${loc}" deleted.`, 'info');
+    }
   },
 
   renderStoryboardDiagram(locations, characters, text) {
