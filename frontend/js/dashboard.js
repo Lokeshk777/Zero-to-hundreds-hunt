@@ -564,8 +564,101 @@ const ScreenwritingStudio = {
     if (timeBadge) timeBadge.textContent = 'Analyzed at ' + new Date().toLocaleTimeString();
     panel.style.display = 'block';
 
+    // RENDER VISUAL STORYBOARD & CHARACTER FLOW DIAGRAM
+    this.renderStoryboardDiagram(locArray, detectedCharacters, combinedText);
+
     // AUTO-CREATE AND SAVE SCENES & CHARACTERS AUTOMATICALLY (No manual entry required!)
     this.autoSyncBreakdownToProject(detectedLocations, detectedCharacters, combinedText);
+  },
+
+  renderStoryboardDiagram(locations, characters, text) {
+    const track = document.getElementById('storyboard-diagram-track');
+    if (!track) return;
+
+    if (locations.length === 0 && characters.length === 0) {
+      track.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px;">Write and save your story to view the automatic visual storyboard flow.</p>';
+      return;
+    }
+
+    // Split story into beats/paragraphs for storyboard frames
+    const rawParagraphs = text.replace(/<[^>]*>/g, '\n').split('\n').map(p => p.trim()).filter(p => p.length > 20);
+    const steps = locations.length > 0 ? locations : ['Opening Frame', 'Turning Point', 'Climax'];
+
+    const characterAvatars = {
+      'Detective': '🕵️‍♂️',
+      'Officer': '👮‍♂️',
+      'Doctor': '👨‍⚕️',
+      'Surgeon': '👩‍⚕️',
+      'Woman': '👩',
+      'Female': '👩',
+      'Man': '👨',
+      'Male': '👨',
+      'Suspect': '🦹',
+      'Killer': '🗡️',
+      'Default': '👤'
+    };
+
+    function getAvatar(roleOrName) {
+      const lower = roleOrName.toLowerCase();
+      for (const [k, v] of Object.entries(characterAvatars)) {
+        if (lower.includes(k.toLowerCase())) return v;
+      }
+      return '🎭';
+    }
+
+    track.innerHTML = steps.map((loc, idx) => {
+      const sceneNum = idx + 1;
+      const beatText = rawParagraphs[idx] || rawParagraphs[rawParagraphs.length - 1] || 'Narrative tension escalates in this key scene.';
+      const shortSnippet = beatText.length > 120 ? beatText.substring(0, 117) + '...' : beatText;
+
+      // Assign characters present in this beat
+      const activeChars = characters.slice(idx % characters.length, (idx % characters.length) + 2);
+      if (activeChars.length === 0 && characters.length > 0) activeChars.push(characters[0]);
+
+      return `
+        <div style="flex: 0 0 260px; background: #131418; border: 1px solid #2B2E3A; border-radius: 8px; padding: 14px; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+          <!-- Storyboard Frame Header -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="badge badge-gold" style="font-size: 0.68rem; font-weight: 700;">FRAME ${sceneNum}</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">${idx === steps.length - 1 ? '🏁 CLIMAX' : '➔ TRANSITION'}</span>
+            </div>
+
+            <!-- Location / Scene Heading -->
+            <h5 style="color: var(--accent); font-size: 0.92rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <span>📍</span> ${Workspace.escapeHtml(loc)}
+            </h5>
+
+            <!-- Story Visual Frame Canvas -->
+            <div style="background: #0B0C0E; border: 1px solid #22252F; border-radius: 6px; padding: 10px; margin-bottom: 10px; min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+              <p style="font-size: 0.8rem; color: #D1D5DB; line-height: 1.5; font-style: italic; margin: 0;">
+                "${Workspace.escapeHtml(shortSnippet)}"
+              </p>
+            </div>
+          </div>
+
+          <!-- Character Interaction Cast in Frame -->
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+              Cast in Frame:
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              ${activeChars.map(c => `
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: #1F222C; padding: 4px 8px; border-radius: 4px; border: 1px solid #333846; font-size: 0.75rem;">
+                  <span>${getAvatar(c.name || c.type)}</span>
+                  <span style="color: #F3F4F6; font-weight: 600;">${Workspace.escapeHtml(c.name)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join(`
+      <!-- Visual Connector Arrow -->
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.4rem; padding: 0 4px; opacity: 0.8;">
+        ➔
+      </div>
+    `);
   },
 
   async autoSyncBreakdownToProject(locationsSet, charactersList, fullText) {
