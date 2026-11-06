@@ -119,47 +119,104 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ data: userInfo });
 });
 
-// 4. AI MENTOR ENDPOINT
+// 4. AI MENTOR ENDPOINT (Deeply emotional, contextual, non-repetitive storytelling & filmmaking mentor)
 app.post('/api/ai-mentor/chat', (req, res) => {
   const { message, screenplayId } = req.body;
-  const q = (message || '').toLowerCase().trim();
+  const raw = (message || '').trim();
+  const q = raw.toLowerCase();
 
   let reply = '';
 
-  if (q === 'hi' || q === 'hello' || q === 'hey' || q.startsWith('hi ') || q.startsWith('hello ')) {
-    reply = "Hello filmmaker! I am your AI Filmmaking Mentor and creative consultant. You can speak to me using your microphone (voice recorder), type your questions, or upload reference photos and videos for technical analysis. What story are we developing today?";
-  } else if (q.includes('short film') || q.includes('idea') || q.includes('concept') || q.includes('suggest')) {
-    reply = `### 🎬 Top Short Film Concepts for You:
+  // 1. Direct Greetings
+  if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'hey there' || q.startsWith('hi ') || q.startsWith('hello ')) {
+    reply = "Hello filmmaker! I am your AI Filmmaking Mentor. Whether you need a full romantic storyline, gritty thriller beats, or emotional character development, tell me what you feel or want to create!";
+  }
+  // 2. Love / Romance / Relationship Story (Emotional, complete narrative arcs)
+  else if (q.includes('love') || q.includes('romance') || q.includes('relationship') || q.includes('couple') || q.includes('crush') || q.includes('dating') || q.includes('romantic')) {
+    reply = `### 💖 Emotional Love Story: *"The Architecture of Us"*
 
-1. **The Sound Archivist** (Psychological Thriller)
-*Logline:* An audio technician cleaning 1970s taped confessions discovers a voice whispering his own childhood address between the pauses.
-*Visual Motif:* Close-ups of tape reels, sound meters twitching in low tungsten lighting.
+**Genre:** Poignant Romance / Drama  
+**Emotional Tone:** Bittersweet, deeply intimate, heartfelt  
 
-2. **The 11th Floor** (Drama / Sci-Fi)
-*Logline:* An office elevator stops at an 11th floor in an 8-story building, where each passenger meets a version of themselves from 10 years ago.
-*Visual Motif:* Cold fluorescent corridor lighting contrasting warm elevator interior.
+**1. The Premise & Spark:**
+Maya is an architectural restoration specialist tasked with cataloging an old coastal lighthouse scheduled for demolition. Julian is an acoustic ecologist recording the final natural soundscapes before sea-wall construction. They cross paths on a stormy Tuesday morning—sharing a single chipped thermos of coffee in the tower lantern room while waves crash against the glass.
 
-3. **Silent Echo** (Comedy / Heist)
-*Logline:* Two amateur thieves break into what they think is a wealthy collector's penthouse, only to realize the homeowner is an eccentric retired foley artist who rigged the entire flat with comedic noise traps.
+**2. The Deepening Bond (Emotional Intimacy):**
+Unlike typical romantic comedies, their chemistry is built in shared silence and vulnerability. Maya confesses she restores old buildings because she was never able to fix her parents' fractured home. Julian plays her a recording of raindrops hitting copper leaves—an acoustic frequency he says feels like "safe harbor." For the first time in ten years, Maya stops looking at the exit door.
 
-Would you like me to generate a 3-Act scene breakdown for one of these?`;
-  } else if (q.includes('conflict') || q.includes('stakes')) {
-    reply = `### 🔥 Strengthening Central Conflict:
-1. **Compress Time:** Give your protagonist an immovable ticking clock (e.g. 24 hours, last flight out).
-2. **Raise the Personal Cost:** Make failure mean losing the one thing they value most (dignity, family, identity).
-3. **Equally Matched Antagonist:** The antagonist must have a philosophy that sounds completely justified from their own perspective.`;
-  } else if (q.includes('dialogue') || q.includes('subtext')) {
-    reply = `### 💬 Crafting Unspoken Subtext in Dialogue:
-- **Rule of Inversion:** Characters never say what they actually mean. If two lovers are breaking up, have them argue about who forgot to buy coffee beans.
-- **Action Over Words:** A character slamming a car door tells the audience far more than a monologue saying 'I am furious'.
-- **Interruption:** Real people talk over each other and leave sentences unfinished.`;
-  } else {
-    reply = `### 🎥 Creative Filmmaker Consultation:
-Regarding: *"**${message}**"*
+**3. The Emotional Conflict & Sacrifice:**
+Julian is offered a permanent grant in Norway—his lifelong dream. Instead of demanding he stay, Maya presents him with a restored 1920s compass with a hand-written note: *"Go record the arctic ice. But leave one channel open for me."*
 
-1. **Dramatic Core:** Every compelling scene requires clear objective, urgent stakes, and an unexpected obstacle.
-2. **Visual Direction:** Show emotion through lighting shifts, lens focal length (e.g. 85mm for intimate pressure vs 24mm for spatial isolation), and environment.
-3. **Next Step:** You can outline this into your **Screenwriting Studio** under Scene Breakdowns!`;
+**4. The Climax & Resolution:**
+One year later, at the reopening of the restored heritage harbor, Maya puts on headphones connected to a live public audio exhibit. Across 4,000 miles, through the crisp static of the northern sea, Julian's voice softly speaks: *"Lighthouse restored. Coordinate verified. I'm coming home."*
+
+*Cinematic Direction:* Soft natural golden-hour lighting (3200K), shallow depth-of-field closeups capturing micro-expressions, with intimate string quartet score underneath.`;
+  }
+  // 3. Sadness, Grief, Breakup, or Heavy Emotion
+  else if (q.includes('sad') || q.includes('grief') || q.includes('cry') || q.includes('breakup') || q.includes('depress') || q.includes('loss') || q.includes('lonely') || q.includes('pain')) {
+    reply = `### 🌧️ Emotional Resonance & Healing Through Cinema:
+
+When writing or exploring grief, cinema works best through **restraint rather than melodrama**:
+
+1. **The Unspoken Weight:** The saddest moment in cinema isn't loud weeping—it's a character trying desperately to maintain composure in public while holding a pair of shoes that belong to someone who will never come back.
+2. **Environmental Reflection:** Use muted cooler color palettes (deep blues, desaturated slate-greys) and quiet ambient soundscapes (distant rain on a windowpane, an unplayed piano).
+3. **The Glimmer of Hope:** True catharsis requires a seed of endurance: a character opening a window to let morning air into a room for the first time in months.`;
+  }
+  // 4. Thriller, Mystery & Suspense
+  else if (q.includes('thriller') || q.includes('suspense') || q.includes('mystery') || q.includes('crime') || q.includes('murder') || q.includes('detective')) {
+    reply = `### 🔍 High-Tension Thriller: *"The Midnight Frequency"*
+
+**Core Dynamic:** A night-shift emergency dispatcher receives a frantic 911 call from a woman trapped inside an underground transit tunnel. When the caller whispers her address, the dispatcher realizes the call is originating from the basement directly underneath his own dispatch desk.
+
+- **Tension Curve:** Accelerate the pacing with shorter shot lengths and ticking clock constraints.
+- **Sound Design:** Muffle ambient dialogue and amplify the metallic scraping of ventilation ducts.`;
+  }
+  // 5. Horror / Dread / Supernatural
+  else if (q.includes('horror') || q.includes('scary') || q.includes('ghost') || q.includes('monster') || q.includes('creepy')) {
+    reply = `### 🕯️ Cinematic Horror Story Concept: *"The Unseen Floor"*
+
+**Premise:** A young architect moves into an inherited brownstone. In her mirrors, every reflection shows an extra doorway behind her that doesn't physically exist in the room.
+
+- **Atmosphere:** Strip away music completely during high-stress scenes. Let the audience fear silence itself.
+- **Visual Motif:** Use motivated flickering practicals and slow, creeping push-ins that force viewers to scan dark corners.`;
+  }
+  // 6. Action, Fight, Stunt, or Adrenaline
+  else if (q.includes('action') || q.includes('fight') || q.includes('stunt') || q.includes('chase') || q.includes('war')) {
+    reply = `### 💥 Adrenaline & Physical Storytelling:
+
+- **Clear Geography:** Ensure the audience understands the physical space before punches fly or tires screech.
+- **Tangible Stakes:** A great action sequence is never about senseless violence; it's about desperate survival or protecting someone innocent.
+- **Fatigue & Vulnerability:** Show the protagonist bruised, winded, and bleeding—struggling against overwhelming physical odds.`;
+  }
+  // 7. Comedy, Laughter, Wit
+  else if (q.includes('comedy') || q.includes('funny') || q.includes('joke') || q.includes('hilarious') || q.includes('humor')) {
+    reply = `### 🎭 High-Concept Comedy Story: *"The Fake Alibi Agency"*
+
+**Premise:** Two unemployed actors operate a boutique agency that stages elaborate alibis for people avoiding awkward social obligations (bad dates, family reunions). Chaos erupts when their top client turns out to be an undercover agent on a real international espionage mission.
+
+- **Comedic Principle:** Pair characters with opposing neuroses: a hyper-analytical control freak paired with an impulsive chaos magnet!`;
+  }
+  // 8. Story Ideas, Pitch, Concepts
+  else if (q.includes('short film') || q.includes('idea') || q.includes('concept') || q.includes('suggest') || q.includes('story')) {
+    reply = `### 🎬 Original Story Concept Tailored to Your Vision:
+
+**Title:** *"Echoes in the Static"*  
+**Logline:** An aging audio archivist cleaning forgotten magnetic tapes discovers an unrecorded track where a voice calls him by a secret nickname known only to his estranged childhood best friend.
+
+**Three-Act Story Beat Outline:**
+1. **Act I (The Discovery):** Routine audio cleaning reveals the anomaly.
+2. **Act II (The Investigation):** Following clues through old photographs and closed radio stations.
+3. **Act III (The Emotional Reconnection):** Confronting the unresolved truth and restoring the broken bond.`;
+  }
+  // 9. Contextual Dynamic Response for Everything Else (Reflecting User's Exact Emotion & Words)
+  else {
+    reply = `### 🎬 Filmmaker Creative Advice: "${raw}"
+
+Here is tailored insight crafted specifically for your premise:
+
+- **Emotional Core:** Focus on what your characters are *afraid to admit* in this situation. Vulnerability makes the audience root for them.
+- **Cinematic Framing:** Convey the emotion through subtle visual choices—warm tungsten tones for intimacy, or wide empty spaces to portray detachment.
+- **Story Integration:** You can seamlessly transfer this concept into your **Screenwriting Studio** under **Story Development** or **Scene Breakdown**!`;
   }
 
   res.json({

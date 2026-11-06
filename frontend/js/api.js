@@ -351,11 +351,33 @@ const Api = {
 - **Status Inversion:** High-status characters (judges, corporate CEOs, mob bosses) placed in humiliating low-status dilemmas (stuck in a child's bounce house).
 - **Physical Contrast:** Pair two characters with opposite physical reactions to danger (one screaming in panic, the other nonchalantly eating a donut).`;
       }
-      // 5. Romance / Emotional / Drama
-      else if (q.includes('romance') || q.includes('love') || q.includes('emotional') || q.includes('drama') || q.includes('cry') || q.includes('sad')) {
-        reply = `### 💔 Emotional Dramatic Scene Craft:
+      // 5. Romance / Love / Emotional
+      else if (q.includes('love') || q.includes('romance') || q.includes('relationship') || q.includes('romantic') || q.includes('crush') || q.includes('dating')) {
+        reply = `### 💖 Emotional Love Story: *"The Architecture of Us"*
+
+**Genre:** Poignant Romance / Drama  
+**Emotional Tone:** Bittersweet, deeply intimate, heartfelt  
+
+**1. The Premise & Spark:**
+Maya is an architectural restoration specialist tasked with cataloging an old coastal lighthouse scheduled for demolition. Julian is an acoustic ecologist recording the final natural soundscapes before sea-wall construction. They cross paths on a stormy Tuesday morning—sharing a single chipped thermos of coffee in the tower lantern room while waves crash against the glass.
+
+**2. The Deepening Bond (Emotional Intimacy):**
+Unlike typical romantic tropes, their chemistry is built in shared silence and vulnerability. Maya confesses she restores old buildings because she was never able to fix her parents' fractured home. Julian plays her a recording of raindrops hitting copper leaves—an acoustic frequency he says feels like "safe harbor." For the first time in ten years, Maya stops looking at the exit door.
+
+**3. The Emotional Conflict & Sacrifice:**
+Julian is offered a permanent grant in Norway—his lifelong dream. Instead of demanding he stay, Maya presents him with a restored 1920s compass with a hand-written note: *"Go record the arctic ice. But leave one channel open for me."*
+
+**4. The Climax & Resolution:**
+One year later, at the reopening of the restored heritage harbor, Maya puts on headphones connected to a live public audio exhibit. Across 4,000 miles, through the crisp static of the northern sea, Julian's voice softly speaks: *"Lighthouse restored. Coordinate verified. I'm coming home."*
+
+*Cinematic Direction:* Soft natural golden-hour lighting (3200K), shallow depth-of-field closeups capturing micro-expressions, with intimate string quartet score underneath.`;
+      }
+      // 5. Emotional / Grief / Sadness
+      else if (q.includes('emotional') || q.includes('drama') || q.includes('cry') || q.includes('sad') || q.includes('grief') || q.includes('loss')) {
+        reply = `### 🌧️ Emotional Resonance & Catharsis in Cinema:
 - **Restraint Over Melodrama:** Tears are more impactful when the character is desperately trying *not* to cry while performing an ordinary task (washing dishes, folding a coat).
-- **Unspoken Longing:** Frame two characters close physically in a tight car or doorway, but separated by emotional distance or a secret they cannot confess.`;
+- **Unspoken Longing:** Frame two characters close physically in a tight space or doorway, but separated by emotional distance or a secret they cannot confess.
+- **Atmospheric Reflection:** Cool blue palettes and subtle ambient sound design (rain on glass, hollow ticking clock) amplify interior pain without requiring dialogue.`;
       }
       // 6. Specific Actors, Filmmakers, Characters
       else if (q.includes('jackie chan') || q.includes('jackiechan')) {
