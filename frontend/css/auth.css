@@ -23,6 +23,21 @@
   overflow: hidden;
 }
 
+@media (max-width: 600px) {
+  .auth-page {
+    padding: 20px 14px;
+    align-items: flex-start;
+  }
+  .auth-container {
+    padding: 24px 18px;
+    border-radius: var(--radius-md);
+    margin-top: 10px;
+  }
+  .auth-brand h1 {
+    font-size: 1.25rem;
+  }
+}
+
 .auth-container::before {
   content: '';
   position: absolute;
