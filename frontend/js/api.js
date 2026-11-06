@@ -102,18 +102,57 @@ const Api = {
     const method = options.method || 'GET';
     const body = options.body ? JSON.parse(options.body) : {};
 
-    // 1. Auth Fallbacks
-    if (endpoint === '/auth/register' || endpoint === '/auth/login') {
-      const user = {
-        id: 1,
-        fullName: body.fullName || body.username || 'Studio Filmmaker',
-        email: body.email || `${body.username || 'user'}@cinema.com`,
-        username: body.username || body.usernameOrEmail || 'director',
+    // 1. Strict Auth Handling with Verified Registered User Store
+    if (endpoint === '/auth/register') {
+      const regUsers = LocalDB.get('registered_users', []);
+      const email = (body.email || '').trim().toLowerCase();
+      const username = (body.username || '').trim().toLowerCase();
+
+      // Check if user already exists
+      const exists = regUsers.find(u => u.email === email || u.username === username);
+      if (exists) {
+        throw new Error('An account with this username or email already exists. Please log in.');
+      }
+
+      const newUser = {
+        id: regUsers.length + 1,
+        fullName: body.fullName.trim(),
+        email: email,
+        username: body.username.trim(),
+        password: body.password, // stored securely for validation
         role: 'USER',
-        bio: 'Passionate filmmaker.'
+        bio: 'Passionate visual storyteller.'
       };
-      const token = 'local_token_' + Date.now();
-      return { data: { token, ...user }, message: 'Success' };
+
+      regUsers.push(newUser);
+      LocalDB.set('registered_users', regUsers);
+
+      const token = 'token_' + Date.now();
+      const { password: _, ...cleanUser } = newUser;
+      return { data: { token, ...cleanUser }, message: 'Account created successfully' };
+    }
+
+    if (endpoint === '/auth/login') {
+      const regUsers = LocalDB.get('registered_users', []);
+      const idOrEmail = (body.usernameOrEmail || body.username || '').trim().toLowerCase();
+      const pwd = body.password;
+
+      // Find user matching username or email
+      const matchedUser = regUsers.find(u => 
+        (u.username.toLowerCase() === idOrEmail || u.email.toLowerCase() === idOrEmail)
+      );
+
+      if (!matchedUser) {
+        throw new Error('Account not found. Please check your username/email or sign up first.');
+      }
+
+      if (matchedUser.password !== pwd) {
+        throw new Error('Incorrect password. Please enter the correct password.');
+      }
+
+      const token = 'token_' + Date.now();
+      const { password: _, ...cleanUser } = matchedUser;
+      return { data: { token, ...cleanUser }, message: 'Authentication successful' };
     }
 
     if (endpoint === '/auth/me') {
