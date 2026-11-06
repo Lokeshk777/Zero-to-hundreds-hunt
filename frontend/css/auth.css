@@ -1,0 +1,176 @@
+/* ====================================================================
+   ZERO TO HUNDRED'S HUNT - AUTHENTICATION PAGES STYLING
+   ==================================================================== */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 20%, #1c1d22 0%, #101113 70%);
+  padding: 30px 20px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-brand .logo-icon {
+  font-size: 2.4rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.auth-brand h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.auth-brand p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.input-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.input-toggle-btn:hover {
+  color: var(--accent);
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.78rem;
+  margin-top: 4px;
+  display: none;
+}
+
+.form-row-remember {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 0.85rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-secondary);
+}
+
+.checkbox-container input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.password-meter {
+  height: 4px;
+  width: 100%;
+  background: var(--border-color);
+  margin-top: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 13px;
+  font-size: 0.95rem;
+  margin-top: 10px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.dev-token-box {
+  margin-top: 20px;
+  padding: 14px;
+  background: rgba(217, 173, 112, 0.08);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  display: none;
+}

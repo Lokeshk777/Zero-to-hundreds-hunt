@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filmmaker Workspace | Zero to Hundred's Hunt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Fixed Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">🎬</div>
+        <div>
+          <h2>Zero to Hundred</h2>
+          <span>FILMMAKER STUDIO</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-module="dashboard">
+          <i>📊</i> <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-module="screenwriting">
+          <i>✍️</i> <span>Screenwriting Studio</span>
+        </div>
+        <div class="nav-item" data-module="ai-mentor">
+          <i>🧠</i> <span>AI Mentor</span>
+        </div>
+        <div class="nav-item" data-module="production">
+          <i>🎥</i> <span>Production Pipeline</span>
+        </div>
+        <div class="nav-item" data-module="library">
+          <i>🎞️</i> <span>Cinematic Library</span>
+        </div>
+        <div class="nav-item" data-module="vault">
+          <i>💡</i> <span>Creative Vault</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-mini" id="open-profile-btn" style="cursor: pointer;" title="Edit Profile">
+          <div class="user-avatar" id="sidebar-user-avatar">?</div>
+          <div class="user-details-text">
+            <h4 id="sidebar-user-name">Loading...</h4>
+            <p id="sidebar-user-role">FILMMAKER</p>
+          </div>
+        </div>
+        <button id="logout-btn" class="logout-icon-btn" title="Sign Out">
+          🚪
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content -->
+    <div class="main-wrapper">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1 id="topbar-title">Dashboard</h1>
+        </div>
+        <div class="top-bar-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-quick-vault" onclick="Workspace.openQuickIdeaModal()">
+            + Quick Idea
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-quick-screenplay" onclick="Workspace.openNewScreenplayModal()">
+            + New Screenplay
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace-content">
+
+        <!-- ============================================================== -->
+        <!-- MODULE 1: DASHBOARD                                            -->
+        <!-- ============================================================== -->
+        <section id="mod-dashboard" class="module-container active">
+          <!-- Welcome Banner -->
+          <div class="card-panel" style="background: linear-gradient(135deg, #1C1E23 0%, #151619 100%); border-left: 4px solid var(--accent); margin-bottom: 24px;">
+            <h2 style="font-size: 1.5rem; color: var(--text-primary); margin-bottom: 6px;">
+              Welcome back, <span id="dash-welcome-name" style="color: var(--accent);">Filmmaker</span>
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+              Your central workspace is active. All scripts, character arcs, production schedules, and library notes are synchronized with the studio database.
+            </p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>Screenplay Projects</h4>
+                <div class="stat-number" id="dash-total-screenplays">0</div>
+              </div>
+              <div class="stat-icon">✍️</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>Saved Creative Ideas</h4>
+                <div class="stat-number" id="dash-total-ideas">0</div>
+              </div>
+              <div class="stat-icon">💡</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>Active Productions</h4>
+                <div class="stat-number" id="dash-active-productions">0</div>
+              </div>
+              <div class="stat-icon">🎥</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>Cinematic Studies</h4>
+                <div class="stat-number" id="dash-total-library">0</div>
+              </div>
+              <div class="stat-icon">🎞️</div>
+            </div>
+          </div>
+
+          <!-- Quick Access To All Six Modules -->
+          <div class="card-panel">
+            <div class="card-panel-header">
+              <h3>Quick Studio Access</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+              <button class="btn btn-secondary" onclick="Workspace.switchModule('screenwriting')">✍️ Screenwriting</button>
+              <button class="btn btn-secondary" onclick="Workspace.switchModule('ai-mentor')">🧠 AI Mentor</button>
+              <button class="btn btn-secondary" onclick="Workspace.switchModule('production')">🎥 Production</button>
+              <button class="btn btn-secondary" onclick="Workspace.switchModule('library')">🎞️ Cinema Library</button>
+              <button class="btn btn-secondary" onclick="Workspace.switchModule('vault')">💡 Creative Vault</button>
+              <button class="btn btn-secondary" onclick="Workspace.openProfileModal()">👤 Account Profile</button>
+            </div>
+          </div>
+
+          <!-- Recents Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+            <!-- Recent Screenplays -->
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <h3>Recently Edited Screenplays</h3>
+                <button class="btn btn-secondary btn-sm" onclick="Workspace.switchModule('screenwriting')">View All</button>
+              </div>
+              <div id="dash-recent-screenplays-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No screenplays created yet. Start your first draft!</p>
+              </div>
+            </div>
+
+            <!-- Recent Creative Ideas -->
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <h3>Recently Saved Ideas</h3>
+                <button class="btn btn-secondary btn-sm" onclick="Workspace.switchModule('vault')">View All</button>
+              </div>
+              <div id="dash-recent-ideas-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No ideas captured in the vault yet.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- MODULE 2: SCREENWRITING STUDIO                                 -->
+        <!-- ============================================================== -->
+        <section id="mod-screenwriting" class="module-container">
+          <!-- Active Screenplay Selector Bar -->
+          <div class="card-panel" style="padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <label style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">ACTIVE SCREENPLAY:</label>
+              <select id="screenplay-selector" style="min-width: 240px;" onchange="ScreenwritingStudio.onScreenplaySelected(this.value)">
+                <option value="">-- Select a Screenplay --</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-primary btn-sm" onclick="Workspace.openNewScreenplayModal()">+ New Project</button>
+              <button class="btn btn-danger btn-sm" id="btn-delete-screenplay" onclick="ScreenwritingStudio.deleteCurrentScreenplay()" style="display: none;">Delete</button>
+            </div>
+          </div>
+
+          <!-- Studio Sub-tabs Navigation -->
+          <div class="subtabs-bar">
+            <button class="subtab-btn active" data-subtab="sub-story" onclick="ScreenwritingStudio.switchSubtab('sub-story')">1. Story Development</button>
+            <button class="subtab-btn" data-subtab="sub-structures" onclick="ScreenwritingStudio.switchSubtab('sub-structures')">2. Story Structures</button>
+            <button class="subtab-btn" data-subtab="sub-characters" onclick="ScreenwritingStudio.switchSubtab('sub-characters')">3. Character Arcs</button>
+            <button class="subtab-btn" data-subtab="sub-scenes" onclick="ScreenwritingStudio.switchSubtab('sub-scenes')">4. Scene Breakdown</button>
+            <button class="subtab-btn" data-subtab="sub-editor" onclick="ScreenwritingStudio.switchSubtab('sub-editor')">5. Screenplay Editor</button>
+          </div>
+
+          <!-- SUBTAB A: Story Development -->
+          <div id="sub-story" class="subtab-content">
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <div>
+                  <h3>Story Concept & Fundamentals</h3>
+                  <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                    Define the core premise, thematic resonance, character objectives, and synopsis for your screenplay.
+                  </p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.saveStoryDetails()">Save Changes</button>
+              </div>
+
+              <form id="story-details-form" class="story-form-container" onsubmit="event.preventDefault(); ScreenwritingStudio.saveStoryDetails();">
+                <!-- Top Row: Story Title, Genre, Theme, Structure Template -->
+                <div class="story-top-row">
+                  <div class="story-form-group">
+                    <label for="sp-title">Story Title <span class="required">*</span></label>
+                    <input type="text" id="sp-title" placeholder="e.g. Inception, Whiplash..." required>
+                  </div>
+
+                  <div class="story-form-group">
+                    <label for="sp-genre">Genre</label>
+                    <input type="text" id="sp-genre" placeholder="Sci-Fi / Psychological Thriller">
+                  </div>
+
+                  <div class="story-form-group">
+                    <label for="sp-theme">Theme</label>
+                    <input type="text" id="sp-theme" placeholder="Hubris of creation, grief, redemption">
+                  </div>
+
+                  <div class="story-form-group">
+                    <label for="sp-structure-type">Structure Template</label>
+                    <select id="sp-structure-type">
+                      <option value="THREE_ACT">Three-Act Structure (Standard)</option>
+                      <option value="FIVE_ACT">Five-Act Dramatic Structure</option>
+                      <option value="HEROS_JOURNEY">Hero's Journey (Monomyth)</option>
+                      <option value="SAVE_THE_CAT">Save the Cat Beat Sheet</option>
+                      <option value="NON_LINEAR">Non-linear Storytelling Structure</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Logline -->
+                <div class="story-form-group">
+                  <label for="sp-logline">Logline <span style="font-weight: 400; color: var(--text-muted);">(One captivating sentence encompassing protagonist, inciting incident, and high stakes)</span></label>
+                  <textarea id="sp-logline" class="textarea-logline" placeholder="When a disgraced detective is given 24 hours to find a senator's daughter, he uncovers a city-wide conspiracy that leads directly back to his own precinct..."></textarea>
+                </div>
+
+                <!-- Story Concept & Central Conflict (Two Balanced Columns) -->
+                <div class="story-two-col">
+                  <div class="story-form-group">
+                    <label for="sp-concept">Story Concept & Premise</label>
+                    <textarea id="sp-concept" class="textarea-concept" placeholder="Elaborate on the core premise, the unique speculative element, or the fundamental dramatic situation that drives the narrative forward..."></textarea>
+                  </div>
+
+                  <div class="story-form-group">
+                    <label for="sp-conflict">Central Dramatic Conflict</label>
+                    <textarea id="sp-conflict" class="textarea-conflict" placeholder="What is the unstoppable force meeting the immovable object? Identify who wants what with intense urgency, and who/what stands directly in their way..."></textarea>
+                  </div>
+                </div>
+
+                <!-- Full Screenplay Canvas (Rich Visual Editor with Headings & Color Pens) -->
+                <div class="story-form-group">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <label style="font-size: 1rem; color: var(--accent); font-weight: 700;">Full Screenplay</label>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Formatted screenplay canvas: Headings are highlighted, paragraphs are compact, and color pens are supported</span>
+                  </div>
+
+                  <!-- Formatting Toolbar (Headings, Paragraphs, Color Pens, Highlighting) -->
+                  <div class="synopsis-toolbar" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #1a1c23; border: 1px solid var(--border-color); border-bottom: none; border-radius: 8px 8px 0 0; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('formatBlock', 'h2')" title="Large Heading" style="font-weight: 800;">H1</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('formatBlock', 'h3')" title="Medium Sub-heading" style="font-weight: 700;">H2</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('formatBlock', 'p')" title="Normal Paragraph" style="font-size: 0.8rem;">Paragraph</button>
+                    <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('bold')" title="Bold"><b>B</b></button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('italic')" title="Italic"><i>I</i></button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.formatDoc('underline')" title="Underline"><u>U</u></button>
+                    <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
+                    <!-- Color Pens -->
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 4px;">Pen:</span>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#E0A96D')" style="width: 22px; height: 22px; border-radius: 50%; background: #E0A96D; border: 1px solid #fff; cursor: pointer;" title="Gold Pen"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#5B9CF6')" style="width: 22px; height: 22px; border-radius: 50%; background: #5B9CF6; border: 1px solid #fff; cursor: pointer;" title="Blue Pen"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#4EBA74')" style="width: 22px; height: 22px; border-radius: 50%; background: #4EBA74; border: 1px solid #fff; cursor: pointer;" title="Green Pen"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#E75A5A')" style="width: 22px; height: 22px; border-radius: 50%; background: #E75A5A; border: 1px solid #fff; cursor: pointer;" title="Red Pen"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#D8B4E2')" style="width: 22px; height: 22px; border-radius: 50%; background: #D8B4E2; border: 1px solid #fff; cursor: pointer;" title="Purple Pen"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('foreColor', '#F3F4F6')" style="width: 22px; height: 22px; border-radius: 50%; background: #F3F4F6; border: 1px solid #fff; cursor: pointer;" title="White/Default Pen"></button>
+                    <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
+                    <!-- Highlight Marker -->
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 4px;">Highlight:</span>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('hiliteColor', 'rgba(224, 169, 109, 0.35)')" style="width: 22px; height: 22px; border-radius: 4px; background: #e0a96d66; border: 1px solid #e0a96d; cursor: pointer;" title="Gold Highlighter"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('hiliteColor', 'rgba(91, 156, 246, 0.35)')" style="width: 22px; height: 22px; border-radius: 4px; background: #5b9cf666; border: 1px solid #5b9cf6; cursor: pointer;" title="Blue Highlighter"></button>
+                    <button type="button" onclick="ScreenwritingStudio.formatDoc('hiliteColor', 'transparent')" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.72rem;" title="Clear Highlighter">Clear Highlight</button>
+                  </div>
+
+                  <!-- Contenteditable Canvas -->
+                  <div id="sp-synopsis-editor" contenteditable="true" class="screenplay-rich-canvas" style="min-height: 280px; padding: 18px 20px; background: #131418; border: 1px solid var(--border-color); border-radius: 0 0 8px 8px; color: #F3F4F6; line-height: 1.7; outline: none; overflow-y: auto;"></div>
+                  <input type="hidden" id="sp-synopsis">
+                </div>
+
+                <!-- AI Screenplay Breakdown Analysis Panel (Characters, People & Physical Locations) -->
+                <div id="screenplay-analysis-panel" class="card-panel" style="margin-top: 24px; background: #16181F; border: 1px solid #2A2E3B; display: none;">
+                  <div class="card-panel-header" style="border-bottom: 1px solid #2A2E3B; padding-bottom: 12px; margin-bottom: 16px;">
+                    <div>
+                      <h3 style="color: var(--accent); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🔍</span> Analyzed Screenplay Breakdown
+                      </h3>
+                      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                        Extracted persons, characters (men/women), and physical scene locations parsed directly from your full screenplay. <strong>These are automatically generated and saved into your Scene Breakdown and Character Arcs!</strong>
+                      </p>
+                    </div>
+                    <span class="badge badge-gold" id="analysis-time-badge">Just Analyzed</span>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+                    <!-- Characters & People Column -->
+                    <div style="background: #111216; padding: 16px; border-radius: 8px; border-left: 3px solid #5B9CF6;">
+                      <h4 style="color: #5B9CF6; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>👥 Characters & Persons Identified</span>
+                        <span id="analysis-char-count" class="badge badge-blue">0</span>
+                      </h4>
+                      <div id="analysis-characters-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">No characters detected yet.</p>
+                      </div>
+                    </div>
+
+                    <!-- Physical Locations Column -->
+                    <div style="background: #111216; padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
+                      <h4 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>📍 Physical Places & Locations</span>
+                        <span id="analysis-loc-count" class="badge badge-gold">0</span>
+                      </h4>
+                      <div id="analysis-locations-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">No physical places detected yet.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- SUBTAB B: Screenplay Structures -->
+          <div id="sub-structures" class="subtab-content" style="display: none;">
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <h3>Narrative Architecture & Beats</h3>
+                <span class="badge badge-gold" id="current-structure-badge">Structure: Three-Act</span>
+              </div>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                Organise and track your screenplay's key structural turning points. Changes to notes autosave or can be updated per beat.
+              </p>
+              <div id="structures-beats-container" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamically generated beats -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB C: Character Development -->
+          <div id="sub-characters" class="subtab-content" style="display: none;">
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <h3>Characters & Dramatis Personae</h3>
+                <button class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.openNewCharacterModal()">+ Add Character</button>
+              </div>
+              <div id="characters-list-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+                <!-- Dynamically loaded character cards -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB D: Scene Development -->
+          <div id="sub-scenes" class="subtab-content" style="display: none;">
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <h3>Scene Breakdown & Sequence</h3>
+                <button class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.openNewSceneModal()">+ Add Scene</button>
+              </div>
+              <div id="scenes-list-container" style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Dynamically loaded scene cards -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB E: Screenplay Editor -->
+          <div id="sub-editor" class="subtab-content" style="display: none;">
+            <div class="card-panel">
+              <div class="card-panel-header">
+                <div>
+                  <h3>Industry Screenplay Editor</h3>
+                  <small style="color: var(--text-muted);" id="draft-last-saved">Last saved: Never</small>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.insertSlugline('INT.')">+ INT.</button>
+                  <button class="btn btn-secondary btn-sm" onclick="ScreenwritingStudio.insertSlugline('EXT.')">+ EXT.</button>
+                  <button class="btn btn-primary btn-sm" onclick="ScreenwritingStudio.saveCurrentDraft()">Save Draft</button>
+                </div>
+              </div>
+              <textarea id="screenplay-editor-textarea" class="screenplay-paper" placeholder="FADE IN:
+
+EXT. LOCATION - DAY
+
+Action description goes here...
+
+                    CHARACTER NAME
+          (parenthetical)
+Dialogue goes here.
+
+                                                  FADE OUT."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- MODULE 3: AI MENTOR                                            -->
+        <!-- ============================================================== -->
+        <section id="mod-ai-mentor" class="module-container">
+          <div class="card-panel" style="margin-bottom: 20px;">
+            <h2 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 8px;">Filmmaking AI Mentor & Creative Dramaturg</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Receive expert guidance on character arcs, structure bottlenecks, dialogue subtext, camera direction, and scene pacing.
+            </p>
+          </div>
+
+          <!-- Suggested quick questions -->
+          <div class="prompt-chips">
+            <button class="chip-btn" onclick="AiMentor.askQuick('How can I strengthen my central conflict and stakes?')">🔥 Strengthen Conflict</button>
+            <button class="chip-btn" onclick="AiMentor.askQuick('Analyze the character arc between my protagonist and antagonist.')">🎭 Character Arc Analysis</button>
+            <button class="chip-btn" onclick="AiMentor.askQuick('Give me 5 techniques to avoid on-the-nose dialogue in emotional scenes.')">💬 Dialogue Subtext</button>
+            <button class="chip-btn" onclick="AiMentor.askQuick('What visual motifs can a director use to convey psychological unraveling?')">🎥 Directing & Visual Motifs</button>
+            <button class="chip-btn" onclick="AiMentor.askQuick('How do I fix pacing issues in the second act slump?')">⏱️ Act II Pacing</button>
+          </div>
+
+          <div class="chat-window">
+            <div class="chat-history" id="ai-chat-history">
+              <div class="chat-bubble assistant">
+                Hello filmmaker! I am your AI Mentor and creative consultant. You can type your questions, click the 🎙️ **Microphone** to speak naturally using speech-to-text, or click the 📎 **Upload** icon to attach reference photos or videos to ask questions about cinematography, set lighting, and scene setups!
+              </div>
+            </div>
+
+            <!-- Media Preview Bar (shows preview of uploaded photo or video) -->
+            <div id="ai-media-preview-bar" style="display: none; padding: 10px 20px; background: #16181C; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="ai-media-badge" class="badge badge-gold">PHOTO</span>
+                <span id="ai-media-filename" style="font-size: 0.85rem; color: var(--text-primary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+              </div>
+              <button class="btn btn-danger btn-sm" style="padding: 2px 8px; font-size: 0.75rem;" onclick="AiMentor.removeUploadedMedia()">Remove</button>
+            </div>
+
+            <div class="chat-input-bar" style="align-items: center;">
+              <!-- Hidden Media File Input -->
+              <input type="file" id="ai-media-file" accept="image/*,video/*" style="display: none;" onchange="AiMentor.handleMediaUpload(event)">
+              
+              <!-- Upload Media Button -->
+              <button type="button" class="btn btn-secondary btn-sm" title="Upload Photo or Video" onclick="document.getElementById('ai-media-file').click()" style="padding: 10px 14px; font-size: 1rem;">
+                📎
+              </button>
+
+              <!-- Voice Recorder Button -->
+              <button type="button" id="ai-voice-btn" class="btn btn-secondary btn-sm" title="Speak via Voice Recorder" onclick="AiMentor.toggleVoiceRecording()" style="padding: 10px 14px; font-size: 1.1rem; transition: all 0.2s ease;">
+                🎙️
+              </button>
+
+              <!-- Text Input -->
+              <input type="text" id="ai-input" placeholder="Type a filmmaking question or speak using the mic..." onkeydown="if(event.key==='Enter') AiMentor.sendMessage()">
+              
+              <!-- Send Button -->
+              <button class="btn btn-primary" onclick="AiMentor.sendMessage()">SEND</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- MODULE 4: PRODUCTION PIPELINE                                  -->
+        <!-- ============================================================== -->
+        <section id="mod-production" class="module-container">
+          <div class="card-panel" style="padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <label style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">PRODUCTION PROJECT:</label>
+              <select id="prod-project-selector" style="min-width: 240px;" onchange="ProductionPipeline.onProjectSelected(this.value)">
+                <option value="">-- Select Production Project --</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-primary btn-sm" onclick="ProductionPipeline.openNewProjectModal()">+ New Production</button>
+              <button class="btn btn-secondary btn-sm" onclick="ProductionPipeline.openNewTaskModal()">+ Add Task</button>
+              <button class="btn btn-danger btn-sm" id="btn-delete-prod-project" onclick="ProductionPipeline.deleteCurrentProject()" style="display: none;">Delete</button>
+            </div>
+          </div>
+
+          <!-- Project Overview Bar -->
+          <div id="prod-overview-card" class="card-panel" style="display: none; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+              <div>
+                <h3 id="prod-detail-title" style="font-size: 1.3rem;">Project Title</h3>
+                <p id="prod-detail-meta" style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;"></p>
+              </div>
+              <div style="text-align: right;">
+                <span class="badge badge-gold" id="prod-detail-stage">STAGE</span>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-top: 4px;" id="prod-detail-pct">0%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5 Pipeline Columns -->
+          <div class="pipeline-grid">
+            <!-- Stage 1: Development -->
+            <div class="pipeline-col" id="col-DEVELOPMENT">
+              <div class="pipeline-col-header">
+                <h4>1. Development</h4>
+                <span class="badge badge-gold" id="count-DEVELOPMENT">0</span>
+              </div>
+              <div class="col-tasks" id="tasks-DEVELOPMENT" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <!-- Stage 2: Pre-production -->
+            <div class="pipeline-col" id="col-PRE_PRODUCTION">
+              <div class="pipeline-col-header">
+                <h4>2. Pre-Production</h4>
+                <span class="badge badge-gold" id="count-PRE_PRODUCTION">0</span>
+              </div>
+              <div class="col-tasks" id="tasks-PRE_PRODUCTION" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <!-- Stage 3: Production -->
+            <div class="pipeline-col" id="col-PRODUCTION">
+              <div class="pipeline-col-header">
+                <h4>3. Production</h4>
+                <span class="badge badge-gold" id="count-PRODUCTION">0</span>
+              </div>
+              <div class="col-tasks" id="tasks-PRODUCTION" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <!-- Stage 4: Post-production -->
+            <div class="pipeline-col" id="col-POST_PRODUCTION">
+              <div class="pipeline-col-header">
+                <h4>4. Post-Production</h4>
+                <span class="badge badge-gold" id="count-POST_PRODUCTION">0</span>
+              </div>
+              <div class="col-tasks" id="tasks-POST_PRODUCTION" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <!-- Stage 5: Completed -->
+            <div class="pipeline-col" id="col-COMPLETED">
+              <div class="pipeline-col-header">
+                <h4>5. Completed</h4>
+                <span class="badge badge-green" id="count-COMPLETED">0</span>
+              </div>
+              <div class="col-tasks" id="tasks-COMPLETED" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- MODULE 5: CINEMATIC LIBRARY                                    -->
+        <!-- ============================================================== -->
+        <section id="mod-library" class="module-container">
+          <div class="card-panel">
+            <div class="card-panel-header">
+              <div>
+                <h3>Personal Cinematic Knowledge & Film Analysis</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                  Your dedicated vault for cinematography observations, editing techniques, lighting breakdowns, and director notes.
+                </p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="CinematicLibrary.openNewEntryModal()">+ Add Observation</button>
+            </div>
+
+            <!-- Filter and Search Bar -->
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px;">
+              <select id="lib-category-filter" onchange="CinematicLibrary.loadEntries()">
+                <option value="ALL">All Categories</option>
+                <option value="CINEMATOGRAPHY">Cinematography</option>
+                <option value="EDITING">Editing Techniques</option>
+                <option value="LIGHTING">Lighting Schemes</option>
+                <option value="SOUND_DESIGN">Sound Design & Foley</option>
+                <option value="SHOT_COMPOSITION">Shot Composition & Framing</option>
+                <option value="DIRECTORS_NOTES">Director's Notes</option>
+                <option value="LESSONS">Filmmaking Lessons</option>
+              </select>
+
+              <input type="text" id="lib-search-input" placeholder="Search observations, films, tags..." style="flex: 1;" oninput="CinematicLibrary.onSearch()">
+            </div>
+
+            <!-- Library Entries Grid -->
+            <div id="library-entries-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+              <!-- Dynamic entries -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- MODULE 6: CREATIVE VAULT                                       -->
+        <!-- ============================================================== -->
+        <section id="mod-vault" class="module-container">
+          <div class="card-panel">
+            <div class="card-panel-header">
+              <div>
+                <h3>Creative Idea Vault & Incubator</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                  Preserve raw concepts, loglines, twists, and dialogue before spinning them into full screenplay productions.
+                </p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="CreativeVault.openNewIdeaModal()">+ Capture New Idea</button>
+            </div>
+
+            <!-- Vault Controls -->
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px;">
+              <select id="vault-category-filter" onchange="CreativeVault.loadIdeas()">
+                <option value="ALL">All Categories</option>
+                <option value="RAW_STORY">Raw Story Ideas</option>
+                <option value="ONE_LINER">One-Line Concepts</option>
+                <option value="LOGLINE">Loglines</option>
+                <option value="CHARACTER_IDEA">Character Quirks & Concepts</option>
+                <option value="PLOT_TWIST">Plot Twists</option>
+                <option value="SCENE_IDEA">Scene Inspirations</option>
+                <option value="DIALOGUE">Dialogue Snippets</option>
+                <option value="TITLE">Film Titles</option>
+                <option value="EXPERIMENTAL">Experimental Concepts</option>
+              </select>
+
+              <button class="btn btn-secondary btn-sm" id="vault-fav-toggle" onclick="CreativeVault.toggleFavouritesFilter()">
+                ★ Favourites Only
+              </button>
+
+              <input type="text" id="vault-search-input" placeholder="Search ideas by title, content, tags..." style="flex: 1;" oninput="CreativeVault.onSearch()">
+            </div>
+
+            <!-- Ideas Grid -->
+            <div id="vault-ideas-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+              <!-- Dynamic ideas -->
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- MODALS SYSTEM                                                    -->
+  <!-- ================================================================ -->
+
+  <!-- Modal: Profile & Settings -->
+  <div id="modal-profile" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Filmmaker Profile & Account</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-profile')">✕</button>
+      </div>
+      <form id="profile-form" onsubmit="event.preventDefault(); Workspace.updateUserProfile();">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="prof-full-name" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="text" id="prof-email" disabled style="opacity: 0.6;">
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="prof-username" disabled style="opacity: 0.6;">
+        </div>
+        <div class="form-group">
+          <label>Filmmaker Bio & Artistic Statement</label>
+          <textarea id="prof-bio" rows="3" placeholder="Describe your cinema aesthetic, influences, and directing goals..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 24px;">SAVE PROFILE</button>
+      </form>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+      <form id="change-pwd-form" onsubmit="event.preventDefault(); Workspace.changePassword();">
+        <h4 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--accent); text-transform: uppercase;">Change Password</h4>
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" id="chg-curr-pwd" required>
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" id="chg-new-pwd" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" id="chg-conf-pwd" required>
+        </div>
+        <button type="submit" class="btn btn-secondary" style="width: 100%;">UPDATE PASSWORD</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: New Screenplay -->
+  <div id="modal-new-screenplay" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New Screenplay Project</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-new-screenplay')">✕</button>
+      </div>
+      <form id="new-screenplay-form" onsubmit="event.preventDefault(); ScreenwritingStudio.submitNewScreenplay();">
+        <div class="form-group">
+          <label>Screenplay Title *</label>
+          <input type="text" id="new-sp-title" placeholder="Oppenheimer, Whiplash, Inception..." required>
+        </div>
+        <div class="form-group">
+          <label>Genre</label>
+          <input type="text" id="new-sp-genre" placeholder="Psychological Thriller, Neo-Noir, Sci-Fi">
+        </div>
+        <div class="form-group">
+          <label>Storytelling Structure Template</label>
+          <select id="new-sp-structure">
+            <option value="THREE_ACT">Three-Act Structure</option>
+            <option value="FIVE_ACT">Five-Act Dramatic Structure</option>
+            <option value="HEROS_JOURNEY">Hero's Journey</option>
+            <option value="SAVE_THE_CAT">Save the Cat Beat Sheet</option>
+            <option value="NON_LINEAR">Non-linear Storytelling Structure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Logline</label>
+          <textarea id="new-sp-logline" rows="2" placeholder="One clear sentence encapsulating the protagonist and narrative hook..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">CREATE PROJECT</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Character Profile -->
+  <div id="modal-character" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="char-modal-title">Add Character Profile</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-character')">✕</button>
+      </div>
+      <form id="character-form" onsubmit="event.preventDefault(); ScreenwritingStudio.submitCharacter();">
+        <input type="hidden" id="char-edit-id">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Character Name *</label>
+            <input type="text" id="char-name" required>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="char-role">
+              <option value="MAIN">Protagonist / Main</option>
+              <option value="ANTAGONIST">Antagonist</option>
+              <option value="SUPPORTING">Supporting</option>
+              <option value="MENTOR">Mentor</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Age & Demographic</label>
+          <input type="text" id="char-age" placeholder="Early 30s, hardened investigative reporter">
+        </div>
+        <div class="form-group">
+          <label>Backstory & Heritage</label>
+          <textarea id="char-background" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Personality Traits & Idiosyncrasies</label>
+          <textarea id="char-personality" rows="2"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Core Motivation (Why)</label>
+            <textarea id="char-motivation" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tangible Goal (What)</label>
+            <textarea id="char-goals" rows="2"></textarea>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Strengths</label>
+            <textarea id="char-strengths" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Fatal Flaw / Weaknesses</label>
+            <textarea id="char-weaknesses" rows="2"></textarea>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Internal Conflict (The Lie)</label>
+            <textarea id="char-internal" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>External Conflict</label>
+            <textarea id="char-external" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Character Arc (From Want to Need)</label>
+          <textarea id="char-arc" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">SAVE CHARACTER</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Scene -->
+  <div id="modal-scene" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="scene-modal-title">Add Scene</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-scene')">✕</button>
+      </div>
+      <form id="scene-form" onsubmit="event.preventDefault(); ScreenwritingStudio.submitScene();">
+        <input type="hidden" id="scene-edit-id">
+        <div style="display: grid; grid-template-columns: 80px 100px 1fr 120px; gap: 10px;">
+          <div class="form-group">
+            <label>Scene #</label>
+            <input type="number" id="scene-number" min="1" value="1">
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="scene-heading-type">
+              <option value="INT.">INT.</option>
+              <option value="EXT.">EXT.</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Location *</label>
+            <input type="text" id="scene-location" placeholder="DETECTIVE APARTMENT" required>
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <select id="scene-time">
+              <option value="DAY">DAY</option>
+              <option value="NIGHT">NIGHT</option>
+              <option value="DUSK">DUSK</option>
+              <option value="DAWN">DAWN</option>
+              <option value="CONTINUOUS">CONTINUOUS</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Characters Present</label>
+          <input type="text" id="scene-characters" placeholder="MARCUS, ELENA">
+        </div>
+        <div class="form-group">
+          <label>Scene Objective & Conflict</label>
+          <textarea id="scene-objective" rows="2" placeholder="What does the character enter wanting? Who blocks them?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Emotional Purpose / Subtext</label>
+          <textarea id="scene-emotional" rows="2" placeholder="What shift happens by the end of the scene?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Action & Dialogue Beats</label>
+          <textarea id="scene-actions" rows="4" placeholder="Brief outline of beats, physical movement, and climax..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">SAVE SCENE</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Production Project -->
+  <div id="modal-production-project" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create Production Pipeline</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-production-project')">✕</button>
+      </div>
+      <form id="production-project-form" onsubmit="event.preventDefault(); ProductionPipeline.submitNewProject();">
+        <div class="form-group">
+          <label>Project Title *</label>
+          <input type="text" id="new-prod-title" required>
+        </div>
+        <div class="form-group">
+          <label>Connect Screenplay (Optional)</label>
+          <select id="new-prod-sp-id">
+            <option value="">-- No Attached Screenplay --</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Director</label>
+            <input type="text" id="new-prod-director">
+          </div>
+          <div class="form-group">
+            <label>Producer</label>
+            <input type="text" id="new-prod-producer">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target Completion Date</label>
+          <input type="date" id="new-prod-date">
+        </div>
+        <div class="form-group">
+          <label>Production Notes & Scope</label>
+          <textarea id="new-prod-desc" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">START PRODUCTION PIPELINE</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Production Task -->
+  <div id="modal-production-task" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="task-modal-title">Add Pipeline Task</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-production-task')">✕</button>
+      </div>
+      <form id="production-task-form" onsubmit="event.preventDefault(); ProductionPipeline.submitTask();">
+        <input type="hidden" id="task-edit-id">
+        <div class="form-group">
+          <label>Pipeline Stage *</label>
+          <select id="task-stage" required>
+            <option value="DEVELOPMENT">1. Development</option>
+            <option value="PRE_PRODUCTION">2. Pre-Production</option>
+            <option value="PRODUCTION">3. Production</option>
+            <option value="POST_PRODUCTION">4. Post-Production</option>
+            <option value="COMPLETED">5. Completed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Task Title *</label>
+          <input type="text" id="task-title" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="task-status">
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="task-priority">
+              <option value="LOW">Low</option>
+              <option value="MEDIUM" selected>Medium</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="task-due-date">
+        </div>
+        <div class="form-group">
+          <label>Description / Checklist</label>
+          <textarea id="task-desc" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">SAVE TASK</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cinematic Library Entry -->
+  <div id="modal-library-entry" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="lib-modal-title">Add Cinematic Observation</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-library-entry')">✕</button>
+      </div>
+      <form id="library-entry-form" onsubmit="event.preventDefault(); CinematicLibrary.submitEntry();">
+        <input type="hidden" id="lib-edit-id">
+        <div class="form-group">
+          <label>Observation Title *</label>
+          <input type="text" id="lib-title" placeholder="e.g., Practical Lighting in 'Blade Runner 2049'" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="lib-category" required>
+              <option value="CINEMATOGRAPHY">Cinematography</option>
+              <option value="EDITING">Editing Techniques</option>
+              <option value="LIGHTING">Lighting Schemes</option>
+              <option value="SOUND_DESIGN">Sound Design & Foley</option>
+              <option value="SHOT_COMPOSITION">Shot Composition & Framing</option>
+              <option value="DIRECTORS_NOTES">Director's Notes</option>
+              <option value="LESSONS">Filmmaking Lessons</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Film Reference (Optional)</label>
+            <input type="text" id="lib-film" placeholder="e.g., Taxi Driver (1976)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description / Technical Context</label>
+          <textarea id="lib-desc" rows="2" placeholder="Brief technical setup, camera lens used, lighting ratio..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Personal Observations & Aesthetic Takeaway *</label>
+          <textarea id="lib-observations" rows="4" placeholder="How does this technique evoke emotion? How will you adapt this to your own projects?" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tags (Comma separated)</label>
+          <input type="text" id="lib-tags" placeholder="anamorphic, low-key, cross-cutting">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">SAVE TO LIBRARY</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Creative Vault Idea -->
+  <div id="modal-vault-idea" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="vault-modal-title">Capture Creative Idea</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-vault-idea')">✕</button>
+      </div>
+      <form id="vault-idea-form" onsubmit="event.preventDefault(); CreativeVault.submitIdea();">
+        <input type="hidden" id="vault-edit-id">
+        <div class="form-group">
+          <label>Idea Title *</label>
+          <input type="text" id="vault-title" placeholder="A catchy working title or prompt" required>
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="vault-category" required>
+            <option value="RAW_STORY">Raw Story Idea</option>
+            <option value="ONE_LINER">One-Line Concept</option>
+            <option value="LOGLINE">Logline</option>
+            <option value="CHARACTER_IDEA">Character Quirk & Concept</option>
+            <option value="PLOT_TWIST">Plot Twist</option>
+            <option value="SCENE_IDEA">Scene Inspiration</option>
+            <option value="DIALOGUE">Dialogue Snippet</option>
+            <option value="TITLE">Film Title</option>
+            <option value="EXPERIMENTAL">Experimental Concept</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Creative Content & Details *</label>
+          <textarea id="vault-content" rows="4" placeholder="Jot down the unvarnished idea before it slips away..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tags</label>
+          <input type="text" id="vault-tags" placeholder="sci-fi, twist, dystopian">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-container">
+            <input type="checkbox" id="vault-fav">
+            <span>Mark as Favourite (★)</span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">PRESERVE IN VAULT</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-mentor.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

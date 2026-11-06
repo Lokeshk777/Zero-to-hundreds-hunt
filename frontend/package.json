@@ -1,0 +1,14 @@
+{
+  "name": "zero-to-hundreds-hunt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}

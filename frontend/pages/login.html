@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Zero to Hundred's Hunt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-container">
+    <div class="auth-brand">
+      <div class="logo-icon">🎬</div>
+      <h1>Zero to Hundred's Hunt</h1>
+      <p>Enter your creative workspace</p>
+    </div>
+
+    <form id="login-form">
+      <!-- Username or Email -->
+      <div class="form-group">
+        <label for="login-id">Username or Email</label>
+        <input type="text" id="login-id" placeholder="filmmaker@cinema.com or username" required autocomplete="username">
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <div class="input-with-icon">
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="input-toggle-btn" data-target="login-password" title="Toggle visibility">🔒</button>
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-row-remember">
+        <label class="checkbox-container">
+          <input type="checkbox" id="remember-me" checked>
+          <span>Remember me</span>
+        </label>
+        <a href="forgot-password.html">Forgot Password?</a>
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="btn btn-primary auth-submit-btn">
+        ENTER STUDIO
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      New to Zero to Hundred's Hunt? <a href="signup.html">Create an Account</a>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    Auth.redirectIfAuthenticated();
+  </script>
+</body>
+</html>

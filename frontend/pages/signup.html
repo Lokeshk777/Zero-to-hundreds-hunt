@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Zero to Hundred's Hunt</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-container">
+    <div class="auth-brand">
+      <div class="logo-icon">🎬</div>
+      <h1>Zero to Hundred's Hunt</h1>
+      <p>Create your filmmaker profile and start writing</p>
+    </div>
+
+    <form id="signup-form">
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="full-name">Full Name</label>
+        <input type="text" id="full-name" placeholder="Christopher Nolan" required autocomplete="name">
+      </div>
+
+      <!-- Email Address -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="filmmaker@cinema.com" required autocomplete="email">
+      </div>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="visionary_director" required autocomplete="username">
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <div class="input-with-icon">
+          <input type="password" id="signup-password" placeholder="••••••••" required autocomplete="new-password">
+          <button type="button" class="input-toggle-btn" data-target="signup-password" title="Toggle visibility">🔒</button>
+        </div>
+        <!-- Password Strength Meter -->
+        <div class="password-meter">
+          <div id="strength-fill" class="password-meter-fill"></div>
+        </div>
+        <div class="password-hint">
+          <span>Minimum 6 characters</span>
+          <span id="strength-text" style="font-weight: 600;">Weak</span>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <div class="input-with-icon">
+          <input type="password" id="confirm-password" placeholder="••••••••" required autocomplete="new-password">
+          <button type="button" class="input-toggle-btn" data-target="confirm-password" title="Toggle visibility">🔒</button>
+        </div>
+      </div>
+
+      <!-- Terms & Conditions -->
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label class="checkbox-container">
+          <input type="checkbox" id="terms" required>
+          <span>I agree to the <a href="#terms-modal">Terms of Creative Ownership</a></span>
+        </label>
+      </div>
+
+      <button type="submit" id="signup-submit-btn" class="btn btn-primary auth-submit-btn">
+        CREATE ACCOUNT
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have a studio account? <a href="login.html">Log In here</a>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    Auth.redirectIfAuthenticated();
+  </script>
+</body>
+</html>
