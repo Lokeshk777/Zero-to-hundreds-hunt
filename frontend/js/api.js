@@ -4,7 +4,9 @@
    If the backend is stopped or not running, the application STILL works seamlessly!
    ==================================================================== */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+  ? 'http://localhost:8080/api' 
+  : '/api';
 
 const Auth = {
   getToken() {
@@ -394,7 +396,53 @@ One year later, at the reopening of the restored heritage harbor, Maya puts on h
         reply = `### 🎙️ Quentin Tarantino (Dialogue Subtext & Non-Linear Crime)
 - **Signature:** Pop-culture digressions that build unbearable suspense, split-chapter structures, and extreme close-ups of weapons and expressions.`;
       }
-      // 7. Psychological Stories / Thrillers
+      // 7. Mythological / Epic / Folklore Stories
+      else if (q.includes('myth') || q.includes('god') || q.includes('goddess') || q.includes('legend') || q.includes('folklore') || q.includes('epics') || q.includes('ancient')) {
+        reply = `### ⚡ Epic Mythological Tale: *"The Sunder of Astra"*
+
+**Origin & Lore:** Ancient Indian / Greco-Vedic Heroic Epics  
+**Theme:** Devotion, destiny, and the mortal burden of divine power  
+
+**Prologue: The Forgotten Oath**  
+Before the oceans drank the golden city of Dwaravati, there lived a warrior-artisan named **Kaelan**. Gifted with the divine silver chisel of the gods, he was sworn never to craft a mortal blade capable of cleaving fate itself. But when an undying celestial asura devoured the celestial waters, drought consumed the mortal kingdoms, leaving mothers cradling withered barley in silent dust.
+
+**The Descent into the Nether-Caverns:**  
+Driven by his brother's dying breath, Kaelan journeys down into the subterranean abyss of *Pātāla*. Guiding him is **Vasuki**, the golden serpent of the deep, who warns him:  
+> *"He who carries the weapon of gods must himself bleed the poison of stars. Your memories of home will be burnt as tribute for each strike."*
+
+**The Great Celestial Climax:**  
+At the peak of Mount Meru, lightning split the sky into violet fracture lines. As the celestial beast descended, Kaelan did not strike with hatred. He plunged the divine spear into the earth, sacrificing his own royal lineage to restore the rivers. The serpent rain fell across the earth, washing away famine, while Kaelan's name was etched into constellation stone—a mortal who taught the immortal gods the true meaning of honor.
+
+*Cinematic Direction:* Deep obsidian and gold color grade (high dynamic range), booming brass and temple percussion soundscapes, with extreme wide panoramic vistas capturing divine scale.`;
+      }
+      // 8. Story Narration & Generation Requests ("narrate it", "create a story", "tell me a story", "write a story")
+      else if (q.includes('narrat') || q.includes('tell me a story') || q.includes('create a story') || q.includes('write a story') || q === 'story' || q.includes('make a story')) {
+        reply = `### 📖 Cinematic Narrative Experience: *"The Watchmaker's Daughter"*
+
+*FADE IN:*
+
+**EXT. COBBLESTONE QUARTER - DUSK (1894)**  
+Heavy grey fog rolls across the gaslit lanterns. Rain glazes the black slate rooftops of Prague. 
+
+A lone silhouette—**ELENA (24)**, her fingers stained with gear oil and ink—slams the oak door of an abandoned horology workshop. Tucked inside her wool overcoat is an impossible mechanism: a brass pocket watch whose second hand moves *counter-clockwise*, pulsing with a faint blue luminescence.
+
+**ELENA**  
+*(whispering to the empty hall)*  
+"Father said forty seconds. Not forty minutes. Just forty seconds to rewrite."
+
+Down the alleyway, heavy brass-buckled boots splash through puddles. Three shadow-clad inspectors from the Imperial Ministry of Chronology halt beneath the amber streetlamp. Their faces are hidden beneath iron respiratory masks.
+
+**INSPECTOR VALK**  
+*(voice muffled through brass valve)*  
+"Return the master spring, Miss Vane. Time is not property. It belongs to the Crown."
+
+Elena presses her thumb against the watch's winding crown. Her heart hammers in her ribcage. If she winds it backward, she resets the previous minute—erasing the inspectors' arrival, but losing a day of her own lifespan in exchange. She looks at the rain dripping from the zinc gutter... and twists the gear.
+
+*The sound of rushing water violently reverses. Raindrops fly skyward into the clouds.*
+
+*Would you like me to continue the next chapter, or map this into the Screenwriting Studio Scene Breakdown?*`;
+      }
+      // 9. Psychological Stories / Thrillers
       else if (q.includes('psychological') || q.includes('pyschological')) {
         reply = `### 🧠 Psychological Story & Screenplay Concepts:
 

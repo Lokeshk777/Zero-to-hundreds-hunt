@@ -210,6 +210,38 @@ public class AiMentorService {
             return "Hello! I am your AI Filmmaking Mentor and creative consultant. You can speak to me using your microphone (voice recorder), type your questions, or upload reference photos and videos for technical analysis. What are we developing today?";
         }
 
+        // --- 2. MYTHOLOGICAL & EPIC STORIES ---
+        if (p.contains("myth") || p.contains("god") || p.contains("goddess") || p.contains("legend") || p.contains("folklore") || p.contains("ancient")) {
+            return "### ⚡ Epic Mythological Tale: *\"The Sunder of Astra\"*\n\n" +
+                   "**Origin & Lore:** Ancient Heroic Epics\n" +
+                   "**Theme:** Devotion, destiny, and the mortal burden of divine power\n\n" +
+                   "**The Legend:**\n" +
+                   "Before the golden city was claimed by the ocean deeps, the warrior-artisan Kaelan was gifted a divine chisel by the star deities. Sworn never to carve a weapon capable of defying fate, Kaelan held his oath—until a celestial dragon consumed the rains, plunging the mortal realms into merciless drought.\n\n" +
+                   "Guided by the golden serpent of the deep abyss, Kaelan sacrificed his royal memories with each strike of his spear upon Mount Meru. With thunder cracking across the violet sky, he restored the waters of the earth, proving to the immortal pantheon that a mortal's devotion surpasses divine pride.\n\n" +
+                   "*Cinematic Direction:* High-contrast gold and obsidian grading, booming temple percussion, and panoramic anamorphic vistas.";
+        }
+
+        // --- 3. STORY NARRATION & CREATION ("narrate it", "create a story", "tell me a story") ---
+        if (p.contains("narrat") || p.contains("create a story") || p.contains("tell me a story") || p.contains("write a story") || p.equals("story") || p.contains("story")) {
+            return "### 📖 Cinematic Narrative Experience: *\"The Watchmaker's Daughter\"*\n\n" +
+                   "*FADE IN:*\n\n" +
+                   "**EXT. COBBLESTONE QUARTER - DUSK (1894)**\n" +
+                   "Heavy grey fog rolls across the gaslit lanterns. Rain glazes the black slate rooftops.\n\n" +
+                   "ELENA (24), fingers stained with gear oil and ink, dashes into an abandoned workshop alley. Hidden in her overcoat is a brass pocket watch whose second hand pulses blue and ticks *counter-clockwise*.\n\n" +
+                   "Behind her, the iron-masked enforcers of the Chronology Ministry demand the device. Elena touches the winding crown. She knows that turning back time by one minute will save her life—at the cost of one day of her own lifespan. She closes her eyes, turns the gear, and the raindrops violently reverse, flying upward back into the sky!\n\n" +
+                   "*Would you like to develop this into full scenes in your Screenwriting Studio?*";
+        }
+
+        // --- 4. LOVE & ROMANCE STORIES ---
+        if (p.contains("love") || p.contains("romance") || p.contains("romantic") || p.contains("relationship") || p.contains("couple")) {
+            return "### 💖 Emotional Love Story: *\"The Architecture of Us\"*\n\n" +
+                   "**Genre:** Poignant Romance / Drama\n" +
+                   "**Emotional Tone:** Bittersweet, deeply intimate, heartfelt\n\n" +
+                   "Maya, an architectural restoration specialist cataloging an abandoned coastal lighthouse, meets Julian, an acoustic sound recorder capturing the last ocean waves before sea-wall construction.\n\n" +
+                   "Sharing black coffee in the lantern room as the gale batters the glass, they discover an unspoken bond built not on grand speeches, but on shared quiet moments and vulnerability. When Julian is awarded a research post in the Arctic, Maya gives him a restored brass compass: *'Go record the northern ice. But leave one channel open for me.'*\n\n" +
+                   "*Cinematic Treatment:* 85mm shallow-focus close-ups, warm tungsten lamplight, and soft string quartet score.";
+        }
+
         // --- 2. COMEDY / HUMOR STORIES & PROMPTS ---
         if (p.contains("comedy") || p.contains("funny") || p.contains("humor") || p.contains("laugh")) {
             sb.append("### 🎭 Comedy Screenplay Pitch: *The Substitute Mastermind*\n\n")
