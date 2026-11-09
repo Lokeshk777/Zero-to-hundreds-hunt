@@ -495,41 +495,141 @@ const ScreenwritingStudio = {
       }
     });
 
-    // 2. Detect Characters & Persons (e.g. Man, Woman, Doctor, Names)
+    // 2. Detect Characters & Persons with Exact Names and Specific Story Roles
     const detectedCharacters = [];
-    const personRoles = [
-      { name: 'Protagonist / Detective', type: 'Person (Lead)', regex: /\b(detective|officer|investigator|agent)\b/i },
-      { name: 'Doctor / Surgeon', type: 'Person (Medical)', regex: /\b(doctor|physician|surgeon|nurse|psychiatrist)\b/i },
-      { name: 'Mystery Woman / Female Lead', type: 'Woman', regex: /\b(woman|female|lady|girl|mother|daughter|wife|sister)\b/i },
-      { name: 'Man / Male Lead', type: 'Man', regex: /\b(man|male|gentleman|boy|father|son|husband|brother)\b/i },
-      { name: 'Suspect / Assassin', type: 'Person (Antagonist)', regex: /\b(suspect|killer|assassin|thief|criminal|villain)\b/i }
+    const lowerText = combinedText.toLowerCase();
+
+    // Specific Story Roles matching keywords
+    const roleDefinitions = [
+      { role: 'Protagonist / Lead', regex: /\b(detective|officer|investigator|agent|hero|heroine|inspector|marshal|captain|sheriff)\b/i },
+      { role: 'Antagonist', regex: /\b(killer|assassin|villain|suspect|murderer|monster|thief|gangster|mobster|nemesis|criminal)\b/i },
+      { role: 'Mentor / Guide', regex: /\b(mentor|guru|master|professor|teacher|elder|counselor|advisor|monk|priest)\b/i },
+      { role: 'Medical Specialist', regex: /\b(doctor|surgeon|physician|nurse|psychiatrist|psychologist|medic)\b/i },
+      { role: 'Law & Order', regex: /\b(judge|lawyer|attorney|prosecutor|guard|warden|sergeant|lieutenant)\b/i },
+      { role: 'Female Lead', regex: /\b(woman|female|lady|girl|mother|daughter|wife|sister|princess|queen)\b/i },
+      { role: 'Male Lead', regex: /\b(man|male|gentleman|boy|father|son|husband|brother|prince|king)\b/i },
+      { role: 'Scientist / Engineer', regex: /\b(scientist|researcher|engineer|coder|hacker|analyst|technician)\b/i },
+      { role: 'Deuteragonist / Partner', regex: /\b(partner|sidekick|companion|friend|ally|confidant)\b/i }
     ];
 
-    personRoles.forEach(role => {
-      if (role.regex.test(lowerText)) {
-        detectedCharacters.push({ name: role.name, type: role.type });
+    // Priority A: Extract explicit Character & Role patterns written in text
+    // E.g. "Protagonist: John", "Detective Marcus", "Character: Sarah - Hacker", "Marcus (Detective)"
+    const explicitPatterns = [
+      /(?:character|protagonist|antagonist|role|lead|hero)\s*[:\-–]\s*([A-Za-z]+(?:\s+[A-Za-z]+)?)(?:\s*[\(\-–]\s*([^\n,.\)]+)\)?)?/gi,
+      /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*[:\-–]\s*(the\s+[A-Za-z\s]+|protagonist|antagonist|detective|doctor|scientist|assassin|mentor|partner)/gi,
+      /(?:detective|officer|doctor|dr\.|agent|inspector|mr\.|mrs\.|ms\.|professor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/gi,
+      /([A-Z][a-z]+)\s*\((?:a|the)?\s*([a-zA-Z\s]+)\)/g
+    ];
+
+    const capturedCharacterNames = new Set();
+
+    // Helper to determine role from surrounding context or text
+    const findRoleForName = (name, specifiedRole = null) => {
+      if (specifiedRole && specifiedRole.trim().length > 2) {
+        return specifiedRole.trim().replace(/^the\s+/i, '');
+      }
+      // Check sentence where name occurs
+      const regex = new RegExp(`([^.!?\\n]*?\\b${name}\\b[^.!?\\n]*)`, 'i');
+      const sentenceMatch = combinedText.match(regex);
+      if (sentenceMatch) {
+        const sentence = sentenceMatch[1].toLowerCase();
+        for (const def of roleDefinitions) {
+          if (def.regex.test(sentence)) {
+            return def.role;
+          }
+        }
+      }
+      return 'Main Character';
+    };
+
+    // Scan explicit pattern matches
+    explicitPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(combinedText)) !== null) {
+        const extractedName = (match[1] || '').trim();
+        const extractedRole = (match[2] || '').trim();
+        const upper = extractedName.toUpperCase();
+        if (extractedName.length >= 3 && !detectedLocations.has(upper) && !capturedCharacterNames.has(upper)) {
+          const titleCased = extractedName.charAt(0).toUpperCase() + extractedName.slice(1);
+          capturedCharacterNames.add(upper);
+          detectedCharacters.push({
+            name: titleCased,
+            type: findRoleForName(extractedName, extractedRole)
+          });
+        }
       }
     });
 
-    // Extract Capitalized character names (e.g. MARCUS, ELENA, JOHN)
+    // Priority B: Extract ALL-CAPS Character Names standard in Screenplays (e.g. MARCUS, ELENA, VANCE)
     const nameMatches = combinedText.match(/\b([A-Z]{3,15})\b/g);
-    const stopWords = new Set(['ACT', 'THE', 'AND', 'FOR', 'OUT', 'DAY', 'FADE', 'INT', 'EXT', 'WITH', 'FROM', 'THAT', 'THIS', 'SCENE']);
-    const customNames = new Set();
+    const stopWords = new Set([
+      'ACT', 'THE', 'AND', 'FOR', 'OUT', 'DAY', 'NIGHT', 'FADE', 'INT', 'EXT', 
+      'WITH', 'FROM', 'THAT', 'THIS', 'SCENE', 'CUT', 'DISSOLVE', 'BEAT', 'LATER',
+      'CONTINUOUS', 'CLOSE', 'VIEW', 'ANGLE', 'WIDE', 'SHOT', 'SUPER', 'TITLE', 
+      'TRACK', 'PAN', 'ZOOM', 'VOICE', 'OVER', 'OFF', 'SCREEN', 'OPENING', 'FINAL'
+    ]);
 
     if (nameMatches) {
-      nameMatches.forEach(name => {
-        if (!stopWords.has(name) && !detectedLocations.has(name)) {
-          customNames.add(name);
+      nameMatches.forEach(rawName => {
+        const upper = rawName.toUpperCase();
+        if (!stopWords.has(upper) && !detectedLocations.has(upper) && !capturedCharacterNames.has(upper)) {
+          capturedCharacterNames.add(upper);
+          const titleCased = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+          detectedCharacters.push({
+            name: titleCased,
+            type: findRoleForName(rawName)
+          });
         }
       });
     }
 
-    customNames.forEach(name => {
-      detectedCharacters.unshift({
-        name: name,
-        type: 'Identified Character'
+    // Priority C: Extract Capitalized Proper Names (e.g. John Miller, Sarah)
+    const properNameMatches = combinedText.match(/\b[A-Z][a-z]{2,15}(?:\s+[A-Z][a-z]{2,15})?\b/g);
+    const commonWords = new Set([
+      'The', 'When', 'Then', 'After', 'Before', 'While', 'Although', 'Because', 'Since',
+      'During', 'Suddenly', 'However', 'Inside', 'Outside', 'Through', 'Meanwhile', 'Finally',
+      'Inception', 'Whiplash', 'Screenplay', 'Studio', 'Story', 'Act', 'Scene', 'Project'
+    ]);
+
+    if (properNameMatches) {
+      properNameMatches.forEach(pName => {
+        const upper = pName.toUpperCase();
+        if (!commonWords.has(pName) && !detectedLocations.has(upper) && !capturedCharacterNames.has(upper)) {
+          // Verify it appears in a character-like context (e.g., has a verb or action)
+          const nameRegex = new RegExp(`\\b${pName}\\s+(?:is|was|walks|runs|enters|looks|speaks|says|tells|discovers|reveals|finds|decides|attempts|fights|shoots|leaves|returns|meets|confronts)\\b`, 'i');
+          if (nameRegex.test(combinedText)) {
+            capturedCharacterNames.add(upper);
+            detectedCharacters.push({
+              name: pName,
+              type: findRoleForName(pName)
+            });
+          }
+        }
       });
-    });
+    }
+
+    // Priority D: If no specific named characters were found, infer archetype roles present in story
+    if (detectedCharacters.length === 0) {
+      roleDefinitions.forEach(roleDef => {
+        if (roleDef.regex.test(lowerText)) {
+          const match = lowerText.match(roleDef.regex);
+          const rawRoleWord = match ? match[1] : 'Protagonist';
+          const exactName = rawRoleWord.charAt(0).toUpperCase() + rawRoleWord.slice(1);
+          detectedCharacters.push({
+            name: exactName,
+            type: roleDef.role
+          });
+        }
+      });
+    }
+
+    // Fallback if completely empty
+    if (detectedCharacters.length === 0) {
+      detectedCharacters.push({
+        name: 'Protagonist',
+        type: 'Lead Character'
+      });
+    }
 
     this.currentBreakdownCharacters = detectedCharacters;
     this.currentBreakdownLocations = Array.from(detectedLocations);
@@ -598,31 +698,78 @@ const ScreenwritingStudio = {
   openAddBreakdownCharacterModal() {
     const newName = prompt('Enter Character Name:');
     if (!newName || !newName.trim()) return;
-    const newRole = prompt('Enter Character Role/Type (e.g. Lead, Detective, Mentor):', 'Lead Character') || 'Identified Character';
-    this.currentBreakdownCharacters.push({ name: newName.trim(), type: newRole.trim() });
+    const newRole = prompt('Enter Character Role/Type (e.g. Protagonist / Lead, Antagonist, Detective, Mentor):', 'Protagonist / Lead') || 'Main Character';
+    const charObj = { name: newName.trim(), type: newRole.trim() };
+    this.currentBreakdownCharacters.push(charObj);
     this.renderBreakdownView();
-    showToast(`Character "${newName.trim()}" added to breakdown.`, 'success');
+    showToast(`Character "${newName.trim()}" (${newRole.trim()}) added.`, 'success');
+
+    // Sync to Character Arcs
+    if (this.currentScreenplayId) {
+      Api.createCharacter(this.currentScreenplayId, {
+        name: charObj.name,
+        roleType: charObj.type.toUpperCase().includes('ANTAGONIST') ? 'ANTAGONIST' : (charObj.type.toUpperCase().includes('LEAD') || charObj.type.toUpperCase().includes('PROTAGONIST') ? 'MAIN' : 'SUPPORTING'),
+        age: 'Adult',
+        background: `Identified and added to story breakdown as ${charObj.type}.`,
+        personality: 'Dynamic narrative presence.',
+        motivation: 'Pursues urgent story objectives.',
+        goals: 'Accomplish mission.'
+      }).then(() => {
+        if (this.activeSubtab === 'sub-characters') this.loadCharacters();
+      }).catch(err => console.warn(err));
+    }
   },
 
   editBreakdownCharacter(idx) {
     const c = this.currentBreakdownCharacters[idx];
     if (!c) return;
+    const oldName = c.name;
     const updatedName = prompt('Edit Character Name:', c.name);
     if (!updatedName || !updatedName.trim()) return;
-    const updatedType = prompt('Edit Character Role/Type:', c.type) || c.type;
+    const updatedType = prompt('Edit Character Role/Type (e.g. Protagonist / Lead, Antagonist, Detective, Mentor):', c.type) || c.type;
     c.name = updatedName.trim();
     c.type = updatedType.trim();
     this.renderBreakdownView();
-    showToast(`Character updated to "${c.name}".`, 'success');
+    showToast(`Character updated to "${c.name}" (${c.type}).`, 'success');
+
+    // Sync update to Character Arcs database if available
+    if (this.currentScreenplayId) {
+      Api.getCharacters(this.currentScreenplayId).then(res => {
+        const chars = res.data || [];
+        const match = chars.find(item => item.name.toUpperCase() === oldName.toUpperCase() || item.name.toUpperCase() === c.name.toUpperCase());
+        if (match) {
+          return Api.updateCharacter(this.currentScreenplayId, match.id, {
+            name: c.name,
+            roleType: c.type.toUpperCase().includes('ANTAGONIST') ? 'ANTAGONIST' : (c.type.toUpperCase().includes('LEAD') || c.type.toUpperCase().includes('PROTAGONIST') ? 'MAIN' : 'SUPPORTING'),
+            background: `Updated role: ${c.type}.`
+          });
+        }
+      }).then(() => {
+        if (this.activeSubtab === 'sub-characters') this.loadCharacters();
+      }).catch(err => console.warn(err));
+    }
   },
 
   deleteBreakdownCharacter(idx) {
     const c = this.currentBreakdownCharacters[idx];
     if (!c) return;
     if (confirm(`Are you sure you want to delete character "${c.name}" from the breakdown?`)) {
-      this.currentBreakdownCharacters.splice(idx, 1);
+      const removed = this.currentBreakdownCharacters.splice(idx, 1)[0];
       this.renderBreakdownView();
-      showToast(`Character "${c.name}" deleted.`, 'info');
+      showToast(`Character "${removed.name}" deleted.`, 'info');
+
+      // Sync deletion with Character Arcs
+      if (this.currentScreenplayId && removed) {
+        Api.getCharacters(this.currentScreenplayId).then(res => {
+          const chars = res.data || [];
+          const match = chars.find(item => item.name.toUpperCase() === removed.name.toUpperCase());
+          if (match) {
+            return Api.deleteCharacter(this.currentScreenplayId, match.id);
+          }
+        }).then(() => {
+          if (this.activeSubtab === 'sub-characters') this.loadCharacters();
+        }).catch(err => console.warn(err));
+      }
     }
   },
 
