@@ -497,7 +497,6 @@ const ScreenwritingStudio = {
 
     // 2. Detect Characters & Persons with Exact Names and Specific Story Roles
     const detectedCharacters = [];
-    const lowerText = combinedText.toLowerCase();
 
     // Specific Story Roles matching keywords
     const roleDefinitions = [
