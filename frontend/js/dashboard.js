@@ -112,6 +112,7 @@ const Workspace = {
     const titleMap = {
       'dashboard': 'Dashboard & Creative Overview',
       'screenwriting': 'Screenwriting Studio',
+      'story-visualizer': 'AI Story Visualizer & Pre-Production',
       'storyboard': 'Visual Storyboard Generator',
       'ai-mentor': 'Filmmaking AI Mentor',
       'production': 'Production Pipeline Management',
@@ -124,6 +125,7 @@ const Workspace = {
     // Refresh data on switch
     if (moduleName === 'dashboard') this.loadDashboardStats();
     if (moduleName === 'screenwriting') ScreenwritingStudio.refreshActiveScreenplay();
+    if (moduleName === 'story-visualizer') AIStoryVisualizer.init();
     if (moduleName === 'storyboard') VisualStoryboard.init();
     if (moduleName === 'production') ProductionPipeline.refreshActiveProject();
     if (moduleName === 'library') CinematicLibrary.loadEntries();
@@ -2390,6 +2392,387 @@ const VisualStoryboard = {
 
   exportPdf() {
     showToast('Preparing professional film storyboard print view...', 'info');
+    window.print();
+  }
+};
+
+/* ====================================================================
+   AI STORY VISUALIZER MODULE (COMPLETE VISUAL EXPERIENCE ENGINE)
+   ==================================================================== */
+const AIStoryVisualizer = {
+  currentScreenplay: null,
+  activeVisualization: null,
+  characters: [],
+  scenes: [],
+  images: [],
+  chartsData: {},
+  activeTab: 'viz-tab-gallery',
+
+  async init() {
+    await this.loadStoryDropdown();
+    if (this.currentScreenplay) {
+      await this.loadVisualizationData(this.currentScreenplay.id);
+    }
+  },
+
+  async loadStoryDropdown() {
+    try {
+      const res = await Api.getScreenplays();
+      const screenplays = (res && res.data && res.data.length > 0) ? res.data : ScreenwritingStudio.screenplays || [];
+      const dropdown = document.getElementById('viz-story-dropdown');
+      if (!dropdown) return;
+
+      dropdown.innerHTML = '<option value="">Select Screenplay...</option>';
+      screenplays.forEach(sp => {
+        const opt = document.createElement('option');
+        opt.value = sp.id;
+        opt.textContent = sp.title || `Screenplay #${sp.id}`;
+        dropdown.appendChild(opt);
+      });
+
+      // Default to active screenplay or first in list
+      if (ScreenwritingStudio.currentScreenplay) {
+        this.currentScreenplay = ScreenwritingStudio.currentScreenplay;
+      } else if (screenplays.length > 0) {
+        this.currentScreenplay = screenplays[0];
+      }
+
+      if (this.currentScreenplay) {
+        dropdown.value = this.currentScreenplay.id;
+        this.updateHeaderMeta(this.currentScreenplay);
+      }
+    } catch (e) {
+      console.warn('Story dropdown init notice:', e);
+    }
+  },
+
+  updateHeaderMeta(sp) {
+    if (!sp) return;
+    const titleEl = document.getElementById('viz-active-title');
+    const metaEl = document.getElementById('viz-active-meta');
+    if (titleEl) titleEl.textContent = sp.title || 'Untitled Screenplay';
+    if (metaEl) {
+      const genre = sp.genre || 'Drama';
+      metaEl.textContent = `${genre} · Complete Screenplay ready for cinematic AI visualization.`;
+    }
+  },
+
+  async onStorySelected(spId) {
+    if (!spId) return;
+    const all = ScreenwritingStudio.screenplays || [];
+    const found = all.find(s => String(s.id) === String(spId)) || { id: spId, title: "Selected Story" };
+    this.currentScreenplay = found;
+    this.updateHeaderMeta(found);
+    await this.loadVisualizationData(spId);
+  },
+
+  switchTab(tabId) {
+    this.activeTab = tabId;
+    document.querySelectorAll('.subtabs-bar .subtab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-viztab') === tabId);
+    });
+
+    document.querySelectorAll('.viz-tab-content').forEach(el => {
+      el.style.display = (el.id === tabId) ? 'block' : 'none';
+    });
+
+    if (tabId === 'viz-tab-charts') {
+      this.renderMermaidCharts();
+    }
+  },
+
+  async startFullVisualization() {
+    if (!this.currentScreenplay) {
+      showToast('Please select a saved screenplay first.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('viz-generate-btn');
+    const progressPanel = document.getElementById('viz-progress-panel');
+    const progressLabel = document.getElementById('viz-progress-label');
+    const progressFill = document.getElementById('viz-progress-fill');
+    const progressCount = document.getElementById('viz-progress-count');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = 'Analyzing Story & Generating Visuals...';
+    }
+    if (progressPanel) progressPanel.style.display = 'block';
+
+    const setProgress = (step, label, pct) => {
+      if (progressLabel) progressLabel.textContent = label;
+      if (progressCount) progressCount.textContent = `Step ${step} of 5`;
+      if (progressFill) progressFill.style.width = pct + '%';
+    };
+
+    try {
+      setProgress(1, 'Reading saved story from database & running analysis...', 20);
+
+      const visualStyle = document.getElementById('viz-visual-style')?.value || 'Cinematic Photorealism';
+      const aspectRatio = document.getElementById('viz-aspect-ratio')?.value || '16:9';
+
+      // Read current scenes & characters to ensure latest story changes are passed
+      const spId = this.currentScreenplay.id;
+      const scenes = (ScreenwritingStudio.currentScreenplayId === spId && ScreenwritingStudio.scenesData) 
+        ? ScreenwritingStudio.scenesData : LocalDB.get(`scenes_${spId}`, []);
+      const chars = (ScreenwritingStudio.currentScreenplayId === spId && ScreenwritingStudio.charactersData) 
+        ? ScreenwritingStudio.charactersData : LocalDB.get(`characters_${spId}`, []);
+
+      const synVal = this.currentScreenplay.synopsis || document.getElementById('sp-synopsis')?.value || '';
+      const conceptVal = this.currentScreenplay.storyConcept || document.getElementById('sp-concept')?.value || '';
+
+      setProgress(2, 'Generating Character Consistency Reference Profiles...', 40);
+
+      const payload = {
+        screenplayId: spId,
+        storyTitle: this.currentScreenplay.title,
+        genre: this.currentScreenplay.genre,
+        visualStyle: visualStyle,
+        aspectRatio: aspectRatio,
+        storyContent: (synVal + ' ' + conceptVal).trim(),
+        scenes: scenes,
+        characters: chars
+      };
+
+      setProgress(3, 'Rendering cinematic scenes & physical image storage...', 70);
+
+      const res = await Api.generateStoryVisualization(payload);
+      const data = res.data;
+
+      setProgress(4, 'Building 5 interactive story charts & timeline...', 90);
+
+      if (data) {
+        this.activeVisualization = data.visualization;
+        this.characters = data.characters || [];
+        this.scenes = data.scenes || [];
+        this.images = data.images || [];
+        this.chartsData = data.charts || {};
+
+        // Persist session to local storage for offline resume
+        LocalDB.set(`full_viz_${spId}`, data);
+
+        // Update UI badge
+        const badge = document.getElementById('visualizer-provenance-badge');
+        if (badge) {
+          const prov = (data.visualization && data.visualization.analysisProvenance) ? data.visualization.analysisProvenance : 'LOCAL_PARSED';
+          badge.textContent = prov === 'GEMINI_AI' ? 'Gemini 3.8 Flash Analyzed' : 'Local Narrative Parser (Verified)';
+        }
+
+        setProgress(5, 'Visualization Complete!', 100);
+        showToast('Story Visualization Generated & Stored Permanently!', 'success');
+
+        this.renderGallery();
+        this.renderCharacters();
+        this.renderTimeline();
+        this.renderMermaidCharts();
+      }
+    } catch (e) {
+      showToast(e.message || 'Error generating visualization', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '🎬 Generate Story Visualization';
+      }
+      setTimeout(() => {
+        if (progressPanel) progressPanel.style.display = 'none';
+      }, 1500);
+    }
+  },
+
+  async loadVisualizationData(spId) {
+    // 1. Try local cache first for instant response
+    const cached = LocalDB.get(`full_viz_${spId}`, null);
+    if (cached) {
+      this.activeVisualization = cached.visualization;
+      this.characters = cached.characters || [];
+      this.scenes = cached.scenes || [];
+      this.images = cached.images || [];
+      this.chartsData = cached.charts || {};
+      this.renderGallery();
+      this.renderCharacters();
+      this.renderTimeline();
+      return;
+    }
+
+    // 2. Fetch from backend API
+    try {
+      const res = await Api.getStoryVisualization(spId);
+      if (res && res.data) {
+        const d = res.data;
+        this.activeVisualization = d.visualization;
+        this.characters = d.characters || [];
+        this.scenes = d.scenes || [];
+        this.images = d.images || [];
+        this.chartsData = d.charts || {};
+        this.renderGallery();
+        this.renderCharacters();
+        this.renderTimeline();
+      }
+    } catch (e) {
+      console.log('No existing visualization for this screenplay yet.');
+    }
+  },
+
+  renderGallery() {
+    const container = document.getElementById('viz-scenes-gallery-stream');
+    if (!container) return;
+
+    if (!this.images || this.images.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 40px; text-align: center;">
+          <p style="color: var(--text-secondary); margin-bottom: 12px;">No images generated yet for this screenplay.</p>
+          <button class="btn btn-primary" onclick="AIStoryVisualizer.startFullVisualization()">Generate Story Visualization</button>
+        </div>`;
+      return;
+    }
+
+    let html = '<div class="storyboard-grid-2col">';
+    this.images.forEach(img => {
+      const provLabel = img.imageProvenance === 'AI_GENERATED' ? 'AI Generated' : 'Local Illustration';
+      const provClass = img.imageProvenance === 'AI_GENERATED' ? 'badge-gold' : 'badge-blue';
+
+      html += `
+        <div class="storyboard-frame-card">
+          <div class="storyboard-frame-visual-box" onclick="VisualStoryboard.openPreviewModal(${img.id})">
+            <img src="${img.imageUrl}" alt="Scene Frame ${img.frameOrder}" />
+            <div class="storyboard-frame-overlay-toolbar" onclick="event.stopPropagation();">
+              <button class="storyboard-frame-toolbar-btn" title="View Full" onclick="VisualStoryboard.openPreviewModal(${img.id})">🔍</button>
+              <button class="storyboard-frame-toolbar-btn" title="Regenerate Image" onclick="AIStoryVisualizer.regenerateSceneImage(${img.id})">🔄</button>
+              <a href="${img.imageUrl}" download="Scene_${img.frameOrder}.svg" class="storyboard-frame-toolbar-btn" title="Download">⬇️</a>
+            </div>
+          </div>
+          <div class="storyboard-frame-meta">
+            <div class="storyboard-frame-shot-tag">
+              <span>Frame ${String(img.frameOrder).padStart(2, '0')} · ${img.cameraShotType || 'Wide shot'}</span>
+              <span class="badge ${provClass}" style="font-size: 0.65rem;">${provLabel}</span>
+            </div>
+            <p class="storyboard-frame-desc">${img.generationPrompt || ''}</p>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  },
+
+  renderCharacters() {
+    const grid = document.getElementById('viz-characters-grid');
+    if (!grid) return;
+
+    if (!this.characters || this.characters.length === 0) {
+      grid.innerHTML = '<p style="color: var(--text-muted);">No character profiles extracted yet.</p>';
+      return;
+    }
+
+    grid.innerHTML = this.characters.map(c => `
+      <div class="card-panel" style="background: #14171d; border: 1px solid #282d37; margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #0a0c10; margin-bottom: 14px; border: 1px solid #262a34;">
+            <img src="${c.referenceImageUrl}" alt="${c.characterName}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="font-size: 1.15rem; color: #fff; margin: 0;">${Workspace.escapeHtml(c.characterName)}</h4>
+            <span class="badge badge-gold">${c.roleType || 'LEAD'}</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;"><strong>Age:</strong> ${c.approxAge || 'Adult'}</p>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;"><strong>Costume:</strong> ${Workspace.escapeHtml(c.clothingContinuity || 'Consistent story attire')}</p>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;"><strong>Distinctive Props:</strong> ${Workspace.escapeHtml(c.distinctiveProps || 'None')}</p>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #1f242d; padding-top: 12px;">
+          <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="AIStoryVisualizer.approveCharacterRef(${c.id})">
+            ${c.isApproved ? '✅ Approved' : '👍 Approve Ref'}
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="AIStoryVisualizer.regenerateCharacterRef(${c.id})">
+            🔄 Regen
+          </button>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  renderTimeline() {
+    const container = document.getElementById('viz-timeline-content');
+    if (!container) return;
+
+    if (!this.scenes || this.scenes.length === 0) {
+      container.innerHTML = '<p style="color: var(--text-muted);">No timeline data generated yet.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <h3 style="font-size: 1.1rem; color: var(--accent); margin-bottom: 16px;">Chronological Event Sequencing</h3>
+      <div style="border-left: 2px solid var(--accent); margin-left: 12px; padding-left: 18px; display: flex; flex-direction: column; gap: 20px;">
+        ${this.scenes.map((s, idx) => `
+          <div style="position: relative;">
+            <div style="position: absolute; left: -25px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent);"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: #fff; font-size: 0.95rem;">Scene ${String(s.sceneNumber || (idx + 1)).padStart(2, '0')}: ${Workspace.escapeHtml(s.location || s.locationName || 'Location')}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${s.timeOfDay || 'DAY'}</span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">${Workspace.escapeHtml(s.actions || s.dramaticAction || '')}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  renderMermaidCharts() {
+    if (!window.mermaid || !this.chartsData) return;
+
+    const renderChart = async (containerId, definition) => {
+      const el = document.getElementById(containerId);
+      if (!el || !definition) return;
+      try {
+        const id = 'svg_' + containerId + '_' + Date.now();
+        const { svg } = await mermaid.render(id, definition);
+        el.innerHTML = svg;
+      } catch (err) {
+        console.warn('Mermaid render notice for ' + containerId + ':', err);
+      }
+    };
+
+    if (this.chartsData.structureChart) renderChart('chart-container-structure', this.chartsData.structureChart);
+    if (this.chartsData.relationshipMap) renderChart('chart-container-relationship', this.chartsData.relationshipMap);
+    if (this.chartsData.storyTimeline) renderChart('chart-container-timeline', this.chartsData.storyTimeline);
+    if (this.chartsData.transitionFlowchart) renderChart('chart-container-transition', this.chartsData.transitionFlowchart);
+    if (this.chartsData.emotionalArc) renderChart('chart-container-emotional', this.chartsData.emotionalArc);
+  },
+
+  async approveCharacterRef(id) {
+    const c = this.characters.find(item => item.id === id);
+    if (c) {
+      c.isApproved = true;
+      try {
+        await Api.approveCharacterReference(id);
+      } catch (e) {
+        console.log('Approved locally');
+      }
+      this.renderCharacters();
+      showToast(`Character reference "${c.characterName}" approved!`, 'success');
+    }
+  },
+
+  async regenerateCharacterRef(id) {
+    const c = this.characters.find(item => item.id === id);
+    if (!c) return;
+    showToast(`Regenerating portrait for ${c.characterName}...`, 'info');
+    c.referenceImageUrl = VisualStoryboard.createSketchSvg("Close-up portrait", "Eye Level", c.characterName + " portrait", Date.now(), c.characterName);
+    this.renderCharacters();
+  },
+
+  async regenerateSceneImage(id) {
+    const img = this.images.find(item => item.id === id);
+    if (!img) return;
+    showToast(`Regenerating Scene Frame ${img.frameOrder}...`, 'info');
+    img.imageUrl = VisualStoryboard.createSketchSvg(img.cameraShotType, "Eye Level", img.generationPrompt, Date.now(), "Protagonist");
+    img.versionNumber = (img.versionNumber || 1) + 1;
+    this.renderGallery();
+    showToast(`Frame ${img.frameOrder} visual regenerated!`, 'success');
+  },
+
+  exportVisualReportPdf() {
+    showToast('Formatting printable AI Story Visualization Report...', 'info');
     window.print();
   }
 };

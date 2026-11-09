@@ -1,0 +1,35 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 380' width='100%' height='100%'>
+    <defs>
+      <pattern id='pGrad_1' width='8' height='8' patternUnits='userSpaceOnUse'>
+        <path d='M0 8 L8 0 M0 0 L8 8' stroke='#282c34' stroke-width='0.6' opacity='0.4'/>
+      </pattern>
+      <linearGradient id='noirBg_1' x1='0' y1='0' x2='0' y2='1'>
+        <stop offset='0%' stop-color='#0f1115'/>
+        <stop offset='50%' stop-color='#191c22'/>
+        <stop offset='100%' stop-color='#0a0c0f'/>
+      </linearGradient>
+    </defs>
+    <rect width='640' height='380' fill='url(#noirBg_1)'/>
+    <rect width='640' height='380' fill='url(#pGrad_1)'/>
+    <rect x='18' y='16' width='604' height='348' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.35'/>
+    <line x1='18' y1='16' x2='268' y2='178' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+    <line x1='622' y1='16' x2='268' y2='178' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+    <line x1='18' y1='364' x2='268' y2='178' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
+    <line x1='622' y1='364' x2='268' y2='178' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
+    <line x1='18' y1='178' x2='622' y2='178' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
+    
+      <path d='M50 50 L50 350 M120 70 L120 330 M520 70 L520 330 M590 50 L590 350' stroke='#3e4451' stroke-width='2.5' opacity='0.7'/>
+      <path d='M50 80 Q320 30 590 80' fill='none' stroke='#4b5263' stroke-width='2' opacity='0.6'/>
+      <line x1='24' y1='310' x2='616' y2='310' stroke='#5c6370' stroke-width='2'/>
+    
+    
+      <circle cx='268' cy='156' r='10' fill='#c8ccd4'/>
+      <path d='M254 166 L282 166 L286 223 L250 223 Z' fill='#282c34' stroke='#828997' stroke-width='1.8'/>
+      <line x1='261' y1='223' x2='261' y2='263' stroke='#abb2bf' stroke-width='4'/>
+      <line x1='275' y1='223' x2='275' y2='263' stroke='#abb2bf' stroke-width='4'/>
+      <text x='268' y='200' font-family='sans-serif' font-size='9' font-weight='bold' fill='#e5c07b' text-anchor='middle'>ARUN</text>
+    
+    <path d='M18 320 L150 364 M28 310 L160 354 M38 300 L170 344' stroke='#abb2bf' stroke-width='0.8' opacity='0.25'/>
+    <rect x='28' y='325' width='280' height='26' rx='3' fill='#0b0d10' fill-opacity='0.9' stroke='#4b5263' stroke-width='0.8'/>
+    <text x='36' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // WIDE SHOT · SOUTH INDIAN TE</text>
+  </svg>

@@ -761,6 +761,23 @@ Elena presses her thumb against the watch's winding crown. Her heart hammers in 
 
   deleteStoryboard(storyboardId) {
     return this.request(`/storyboards/${storyboardId}`, { method: 'DELETE' });
+  },
+
+  // AI Story Visualizer
+  generateStoryVisualization(payload) {
+    return this.request('/story-visualizer/generate', { method: 'POST', body: JSON.stringify(payload) });
+  },
+
+  getStoryVisualization(visualizationId) {
+    return this.request(`/story-visualizer/${visualizationId}`);
+  },
+
+  approveCharacterReference(characterId) {
+    return this.request(`/story-visualizer/characters/${characterId}/approve`, { method: 'POST' });
+  },
+
+  regenerateVisualizationImage(imageId) {
+    return this.request(`/story-visualizer/images/${imageId}/regenerate`, { method: 'POST' });
   }
 };
 

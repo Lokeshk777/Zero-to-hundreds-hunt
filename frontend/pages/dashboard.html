@@ -27,6 +27,9 @@
         <div class="nav-item" data-module="screenwriting" onclick="Workspace.switchModule('screenwriting')">
           <i>✍️</i> <span>Screenwriting Studio</span>
         </div>
+        <div class="nav-item" data-module="story-visualizer" onclick="Workspace.switchModule('story-visualizer')">
+          <i>🎬</i> <span>AI Story Visualizer</span>
+        </div>
         <div class="nav-item" data-module="storyboard" onclick="Workspace.switchModule('storyboard')">
           <i>🎨</i> <span>Visual Storyboard</span>
         </div>
@@ -762,6 +765,196 @@ Dialogue goes here.
           </div>
         </section>
 
+        <!-- ============================================================== -->
+        <!-- MODULE: AI STORY VISUALIZER                                     -->
+        <!-- ============================================================== -->
+        <section id="mod-story-visualizer" class="module-container">
+          <div class="storyboard-workspace-container">
+            <!-- Header bar -->
+            <div class="storyboard-top-panel">
+              <div class="storyboard-badge-header">
+                <span class="studio-super-tag">ZERO TO HUNDRED'S HUNT · AI PRE-PRODUCTION</span>
+                <span id="visualizer-provenance-badge" class="status-pill status-ready">AI Visualizer Engine Ready</span>
+              </div>
+              <h1 class="storyboard-main-title">AI Story Visualizer</h1>
+              <div class="storyboard-sub-label">DEEP NARRATIVE ANALYSIS & CINEMATIC SCENE GENERATION</div>
+
+              <!-- Selection & Control Deck -->
+              <div class="storyboard-screenplay-card">
+                <div class="storyboard-card-info">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 260px;">
+                      <h2 id="viz-active-title" class="storyboard-film-title">Select Story to Visualize</h2>
+                      <select id="viz-story-dropdown" class="storyboard-dropdown-select" onchange="AIStoryVisualizer.onStorySelected(this.value)">
+                        <option value="">Choose saved screenplay...</option>
+                      </select>
+                    </div>
+
+                    <!-- Generation Settings (Style & Ratio) -->
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                      <select id="viz-visual-style" class="storyboard-dropdown-select" title="Visual Rendering Style">
+                        <option value="Cinematic Photorealism">Cinematic Photorealism</option>
+                        <option value="Hand-Drawn Storyboard">Hand-Drawn Storyboard</option>
+                        <option value="Black-and-White Pencil Sketch">B&W Pencil Sketch</option>
+                        <option value="Anime Illustration">Anime Illustration</option>
+                        <option value="Graphic Novel">Graphic Novel</option>
+                        <option value="Watercolor Illustration">Watercolor Illustration</option>
+                      </select>
+
+                      <select id="viz-aspect-ratio" class="storyboard-dropdown-select" title="Aspect Ratio">
+                        <option value="16:9">16:9 Standard Cinema</option>
+                        <option value="2.39:1">2.39:1 Anamorphic Widescreen</option>
+                        <option value="4:3">4:3 Classic Academy</option>
+                      </select>
+
+                      <button class="btn btn-secondary btn-sm" onclick="AIStoryVisualizer.exportVisualReportPdf()">
+                        📄 Export PDF Report
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="storyboard-meta-row">
+                    <span id="viz-active-meta">Select a saved story from Screenwriting Studio to start comprehensive visual pre-production.</span>
+                  </div>
+                </div>
+
+                <!-- Primary Action -->
+                <button id="viz-generate-btn" class="btn-generate-storyboard" onclick="AIStoryVisualizer.startFullVisualization()">
+                  🎬 Generate Story Visualization
+                </button>
+              </div>
+            </div>
+
+            <!-- Real-time Progress Bar -->
+            <div id="viz-progress-panel" style="display: none; background: #14171d; border: 1px solid #2e3440; border-radius: 8px; padding: 14px 20px; margin-bottom: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span id="viz-progress-label" style="font-size: 0.88rem; font-weight: 600; color: var(--accent);">Processing narrative...</span>
+                <span id="viz-progress-count" style="font-size: 0.8rem; color: var(--text-muted);">Step 1 of 5</span>
+              </div>
+              <div style="width: 100%; height: 6px; background: #222630; border-radius: 4px; overflow: hidden;">
+                <div id="viz-progress-fill" style="width: 20%; height: 100%; background: var(--accent); transition: width 0.3s ease;"></div>
+              </div>
+            </div>
+
+            <!-- Visualization Main Tabs -->
+            <div class="subtabs-bar" style="margin-bottom: 20px;">
+              <button class="subtab-btn active" data-viztab="viz-tab-gallery" onclick="AIStoryVisualizer.switchTab('viz-tab-gallery')">
+                🖼️ Scene Gallery
+              </button>
+              <button class="subtab-btn" data-viztab="viz-tab-charts" onclick="AIStoryVisualizer.switchTab('viz-tab-charts')">
+                📊 Story Charts (5)
+              </button>
+              <button class="subtab-btn" data-viztab="viz-tab-characters" onclick="AIStoryVisualizer.switchTab('viz-tab-characters')">
+                👤 Character Profiles
+              </button>
+              <button class="subtab-btn" data-viztab="viz-tab-timeline" onclick="AIStoryVisualizer.switchTab('viz-tab-timeline')">
+                ⏱️ Story Timeline
+              </button>
+            </div>
+
+            <!-- TAB 1: SCENE GALLERY -->
+            <div id="viz-tab-gallery" class="viz-tab-content">
+              <div id="viz-scenes-gallery-stream" class="storyboard-content-stream">
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+                  <p style="color: var(--text-secondary); margin-bottom: 12px;">No visual scenes generated yet. Select a saved story above and click "Generate Story Visualization".</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: STORY CHARTS (5 INTERACTIVE CHARTS) -->
+            <div id="viz-tab-charts" class="viz-tab-content" style="display: none;">
+              <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Chart 1: Story Structure -->
+                <div class="card-panel" style="background: #101216; border: 1px solid #282d37;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.1rem; color: var(--accent); margin: 0;">1. Dramatic Story Structure</h3>
+                    <span class="badge badge-gold">Three-Act Beats</span>
+                  </div>
+                  <div id="chart-container-structure" class="mermaid" style="background: #0d0f13; border-radius: 6px; padding: 16px; overflow-x: auto; text-align: center;">
+                    graph LR
+                      A["Setup"] --> B["Inciting Incident"]
+                      B --> C["Rising Conflict"]
+                      C --> D["Climax"]
+                      D --> E["Resolution"]
+                  </div>
+                </div>
+
+                <!-- Chart 2: Character Relationship Map -->
+                <div class="card-panel" style="background: #101216; border: 1px solid #282d37;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.1rem; color: #61afef; margin: 0;">2. Character Relationship Map</h3>
+                    <span class="badge badge-blue">Interactions & Stakes</span>
+                  </div>
+                  <div id="chart-container-relationship" class="mermaid" style="background: #0d0f13; border-radius: 6px; padding: 16px; overflow-x: auto; text-align: center;">
+                    graph TD
+                      Protagonist["Protagonist"] --> |"Alliance"| Partner["Partner"]
+                      Protagonist --> |"Conflict"| Antagonist["Antagonist"]
+                  </div>
+                </div>
+
+                <!-- Chart 3: Chronological Timeline -->
+                <div class="card-panel" style="background: #101216; border: 1px solid #282d37;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.1rem; color: #98c379; margin: 0;">3. Chronological Story Timeline</h3>
+                    <span class="badge badge-gold">Event Progression</span>
+                  </div>
+                  <div id="chart-container-timeline" class="mermaid" style="background: #0d0f13; border-radius: 6px; padding: 16px; overflow-x: auto; text-align: center;">
+                    timeline
+                      title Story Chronology
+                      Act I : Opening Status Quo : Inciting Incident
+                      Act II : Escalating Stakes : Reversal
+                      Act III : Climax : Resolution
+                  </div>
+                </div>
+
+                <!-- Chart 4: Scene Transition Flowchart -->
+                <div class="card-panel" style="background: #101216; border: 1px solid #282d37;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.1rem; color: #e5c07b; margin: 0;">4. Scene Transition Flowchart</h3>
+                    <span class="badge badge-gold">Cinematic Movement</span>
+                  </div>
+                  <div id="chart-container-transition" class="mermaid" style="background: #0d0f13; border-radius: 6px; padding: 16px; overflow-x: auto; text-align: center;">
+                    flowchart TD
+                      S1["Scene 01: Setup"] --> |"Cut To"| S2["Scene 02: Encounter"]
+                      S2 --> |"Dissolve"| S3["Scene 03: Climax"]
+                  </div>
+                </div>
+
+                <!-- Chart 5: Character Emotional Arc -->
+                <div class="card-panel" style="background: #101216; border: 1px solid #282d37;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.1rem; color: #e06c75; margin: 0;">5. Character Emotional Arc</h3>
+                    <span class="badge badge-gold">Tension & Catharsis</span>
+                  </div>
+                  <div id="chart-container-emotional" class="mermaid" style="background: #0d0f13; border-radius: 6px; padding: 16px; overflow-x: auto; text-align: center;">
+                    xychart-beta
+                      title "Protagonist Emotional Tension Arc"
+                      x-axis ["Setup", "Inciting", "Rising", "Midpoint", "Climax", "Resolution"]
+                      y-axis "Tension (1-10)" 0 --> 10
+                      bar [3, 5, 7, 6, 10, 4]
+                      line [3, 5, 7, 6, 10, 4]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: CHARACTER PROFILES & REFERENCE IMAGES -->
+            <div id="viz-tab-characters" class="viz-tab-content" style="display: none;">
+              <div id="viz-characters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Dynamically populated character cards -->
+              </div>
+            </div>
+
+            <!-- TAB 4: STORY TIMELINE -->
+            <div id="viz-tab-timeline" class="viz-tab-content" style="display: none;">
+              <div id="viz-timeline-content" class="card-panel" style="background: #101216;">
+                <!-- Dynamically populated event milestones -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
@@ -1266,9 +1459,17 @@ Dialogue goes here.
 
   <div id="toast-container"></div>
 
+  <!-- Mermaid.js for Interactive Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    }
+  </script>
+
   <!-- Scripts (Cache-busted) -->
-  <script src="../js/api.js?v=2.2"></script>
-  <script src="../js/ai-mentor.js?v=2.2"></script>
-  <script src="../js/dashboard.js?v=2.2"></script>
+  <script src="../js/api.js?v=2.3"></script>
+  <script src="../js/ai-mentor.js?v=2.3"></script>
+  <script src="../js/dashboard.js?v=2.3"></script>
 </body>
 </html>

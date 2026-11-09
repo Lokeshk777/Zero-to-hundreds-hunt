@@ -15,6 +15,7 @@ import java.util.Optional;
 @Repository
 public interface SceneRepository extends JpaRepository<Scene, Long> {
     List<Scene> findByScreenplayAndUserOrderBySceneNumberAsc(ScreenplayProject screenplay, User user);
+    List<Scene> findByScreenplayIdOrderBySceneNumberAsc(Long screenplayId);
     Optional<Scene> findByIdAndUser(Long id, User user);
     long countByScreenplayAndUser(ScreenplayProject screenplay, User user);
 
