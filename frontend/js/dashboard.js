@@ -1256,7 +1256,12 @@ const ScreenwritingStudio = {
         showToast('Scene added!', 'success');
       }
       Workspace.closeModal('modal-scene');
-      this.loadScenes();
+      await this.loadScenes();
+
+      // Automatically update the Visual Storyboard to reflect the new/updated scene!
+      if (typeof VisualStoryboard !== 'undefined') {
+        await VisualStoryboard.onSceneChanged(this.currentScreenplayId);
+      }
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1267,7 +1272,12 @@ const ScreenwritingStudio = {
     try {
       await Api.deleteScene(this.currentScreenplayId, sceneId);
       showToast('Scene deleted.', 'info');
-      this.loadScenes();
+      await this.loadScenes();
+
+      // Automatically update the Visual Storyboard to reflect scene deletion!
+      if (typeof VisualStoryboard !== 'undefined') {
+        await VisualStoryboard.onSceneChanged(this.currentScreenplayId);
+      }
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1848,6 +1858,14 @@ const VisualStoryboard = {
       this.currentScreenplay = found;
       this.updateScreenplayCard(found);
       await this.loadActiveStoryboard();
+    }
+  },
+
+  async onSceneChanged(spId) {
+    if (!spId) return;
+    const targetSp = this.allScreenplays.find(s => String(s.id) === String(spId)) || this.currentScreenplay;
+    if (targetSp) {
+      this.generateStoryboardFromStory(spId, targetSp);
     }
   },
 
