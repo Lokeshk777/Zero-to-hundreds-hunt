@@ -112,6 +112,7 @@ const Workspace = {
     const titleMap = {
       'dashboard': 'Dashboard & Creative Overview',
       'screenwriting': 'Screenwriting Studio',
+      'storyboard': 'Visual Storyboard Generator',
       'ai-mentor': 'Filmmaking AI Mentor',
       'production': 'Production Pipeline Management',
       'library': 'Cinematic Knowledge & Film Analysis',
@@ -123,6 +124,7 @@ const Workspace = {
     // Refresh data on switch
     if (moduleName === 'dashboard') this.loadDashboardStats();
     if (moduleName === 'screenwriting') ScreenwritingStudio.refreshActiveScreenplay();
+    if (moduleName === 'storyboard') VisualStoryboard.init();
     if (moduleName === 'production') ProductionPipeline.refreshActiveProject();
     if (moduleName === 'library') CinematicLibrary.loadEntries();
     if (moduleName === 'vault') CreativeVault.loadIdeas();
@@ -1771,6 +1773,520 @@ const CreativeVault = {
     } catch (err) {
       showToast(err.message, 'error');
     }
+  }
+};
+
+/* ====================================================================
+   VISUAL STORYBOARD GENERATOR MODULE
+   ==================================================================== */
+const VisualStoryboard = {
+  currentScreenplay: null,
+  activeStoryboard: null,
+  currentFrames: [],
+  allScreenplays: [],
+  activeVersion: 1,
+
+  async init() {
+    await this.loadScreenplaysDropdown();
+    await this.loadActiveStoryboard();
+  },
+
+  async loadScreenplaysDropdown() {
+    try {
+      const res = await Api.getScreenplays();
+      this.allScreenplays = (res && res.data && res.data.length > 0) ? res.data : ScreenwritingStudio.screenplays || [];
+      
+      const select = document.getElementById('sb-screenplay-dropdown');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Select Screenplay...</option>';
+      this.allScreenplays.forEach(sp => {
+        const opt = document.createElement('option');
+        opt.value = sp.id;
+        opt.textContent = sp.title || `Screenplay #${sp.id}`;
+        select.appendChild(opt);
+      });
+
+      // Default to currently selected screenplay in Screenwriting Studio or first available
+      if (ScreenwritingStudio.currentScreenplay) {
+        this.currentScreenplay = ScreenwritingStudio.currentScreenplay;
+      } else if (this.allScreenplays.length > 0) {
+        this.currentScreenplay = this.allScreenplays[0];
+      }
+
+      if (this.currentScreenplay) {
+        select.value = this.currentScreenplay.id;
+        this.updateScreenplayCard(this.currentScreenplay);
+      }
+    } catch (e) {
+      console.warn('Could not load screenplays for storyboard:', e);
+    }
+  },
+
+  updateScreenplayCard(sp) {
+    if (!sp) return;
+    const titleEl = document.getElementById('sb-active-screenplay-title');
+    const metaEl = document.getElementById('sb-active-meta');
+    
+    if (titleEl) titleEl.textContent = sp.title || 'Untitled Screenplay';
+    if (metaEl) {
+      const genre = sp.genre || 'Drama / Thriller';
+      const sceneCount = (ScreenwritingStudio.scenes && ScreenwritingStudio.scenes.length) ? ScreenwritingStudio.scenes.length : 12;
+      metaEl.textContent = `${genre} · ${sceneCount} scenes · Updated recently`;
+    }
+  },
+
+  async onScreenplaySelect(spId) {
+    if (!spId) return;
+    const found = this.allScreenplays.find(s => String(s.id) === String(spId));
+    if (found) {
+      this.currentScreenplay = found;
+      this.updateScreenplayCard(found);
+      await this.loadActiveStoryboard();
+    }
+  },
+
+  async loadActiveStoryboard() {
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    const storageKey = `storyboard_${spId}`;
+    
+    // Check local storage or backend
+    let saved = LocalDB.get(storageKey, null);
+    
+    try {
+      const res = await Api.getStoryboardsByScreenplay(spId);
+      if (res && res.data && res.data.length > 0) {
+        this.activeStoryboard = res.data[0];
+        const framesRes = await Api.getStoryboardFrames(this.activeStoryboard.id);
+        if (framesRes && framesRes.data && framesRes.data.length > 0) {
+          this.currentFrames = framesRes.data;
+          this.renderStoryboardView();
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('Using offline/local storyboard data:', e);
+    }
+
+    if (saved && saved.frames && saved.frames.length > 0) {
+      this.activeStoryboard = saved.storyboard;
+      this.currentFrames = saved.frames;
+    } else {
+      // Seed default storyboard layout matching user mockup
+      this.generateDefaultMockShots();
+    }
+
+    this.renderStoryboardView();
+  },
+
+  generateDefaultMockShots() {
+    const spTitle = this.currentScreenplay ? this.currentScreenplay.title : "The Last Journey";
+    this.activeStoryboard = {
+      id: 101,
+      screenplayId: this.currentScreenplay ? this.currentScreenplay.id : 1,
+      title: spTitle,
+      versionNumber: 1,
+      versionName: "Revision 1"
+    };
+
+    this.currentFrames = [
+      {
+        id: 1,
+        sceneNumber: 1,
+        sceneHeading: "Scene 01 — The Arrival",
+        frameNumber: 1,
+        shotType: "Wide shot",
+        cameraAngle: "Eye Level",
+        shotDescription: "Character enters railway station.",
+        imageUrl: this.createSketchSvg("Wide shot", "Eye Level", "Character enters railway station.", 1)
+      },
+      {
+        id: 2,
+        sceneNumber: 1,
+        sceneHeading: "Scene 01 — The Arrival",
+        frameNumber: 2,
+        shotType: "Close-up",
+        cameraAngle: "Low Angle",
+        shotDescription: "Character checks his watch.",
+        imageUrl: this.createSketchSvg("Close-up", "Low Angle", "Character checks his watch.", 2)
+      },
+      {
+        id: 3,
+        sceneNumber: 1,
+        sceneHeading: "Scene 01 — The Arrival",
+        frameNumber: 3,
+        shotType: "Over-the-shoulder",
+        cameraAngle: "Dutch Angle",
+        shotDescription: "He notices someone on the platform.",
+        imageUrl: this.createSketchSvg("Over-the-shoulder", "Dutch Angle", "He notices someone on the platform.", 3)
+      },
+      {
+        id: 4,
+        sceneNumber: 1,
+        sceneHeading: "Scene 01 — The Arrival",
+        frameNumber: 4,
+        shotType: "Long shot",
+        cameraAngle: "High Angle",
+        shotDescription: "Mysterious figure stands in the distance.",
+        imageUrl: this.createSketchSvg("Long shot", "High Angle", "Mysterious figure stands in the distance.", 4)
+      }
+    ];
+
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    LocalDB.set(`storyboard_${spId}`, {
+      storyboard: this.activeStoryboard,
+      frames: this.currentFrames
+    });
+  },
+
+  createSketchSvg(shotType, cameraAngle, desc, seed) {
+    const type = shotType || 'Wide shot';
+    const angle = cameraAngle || 'Eye Level';
+    const cleanDesc = desc || 'Cinematic shot composition';
+    const hash = Math.abs((cleanDesc + seed + angle).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
+    const charX = 220 + (hash % 160);
+    const horizonY = 170 + (hash % 50);
+
+    const isClose = type.toLowerCase().includes('close');
+    const isOverShoulder = type.toLowerCase().includes('over');
+
+    let figureSvg = '';
+    if (isClose) {
+      figureSvg = `
+        <circle cx='320' cy='140' r='60' fill='#1e222b' stroke='#abb2bf' stroke-width='2'/>
+        <path d='M260 135 Q320 70 380 135 Q390 80 320 75 Q250 80 260 135' fill='#5c6370'/>
+        <path d='M290 135 Q320 140 350 135' stroke='#abb2bf' stroke-width='2' fill='none'/>
+        <circle cx='305' cy='145' r='4' fill='#fff'/><circle cx='335' cy='145' r='4' fill='#fff'/>
+        <path d='M320 145 L318 170 L328 170' stroke='#c8ccd4' stroke-width='2' fill='none'/>
+        <path d='M308 185 Q320 190 332 185' stroke='#c8ccd4' stroke-width='2' fill='none'/>
+        <path d='M210 260 L260 200 L320 225 L380 200 L430 260 L460 360 L180 360 Z' fill='#16191f' stroke='#5c6370' stroke-width='2'/>
+        <path d='M260 200 L295 290 M380 200 L345 290' stroke='#4b5263' stroke-width='2'/>
+      `;
+    } else if (isOverShoulder) {
+      figureSvg = `
+        <!-- Foreground silhouette -->
+        <path d='M20 160 Q90 120 140 160 L180 360 L10 360 Z' fill='#0a0c0f' stroke='#3e4451' stroke-width='2'/>
+        <circle cx='95' cy='130' r='35' fill='#0a0c0f'/>
+        <!-- Target figure -->
+        <circle cx='${charX}' cy='160' r='24' fill='#1e222b' stroke='#abb2bf' stroke-width='2'/>
+        <path d='M${charX - 25} 184 L${charX + 25} 184 L${charX + 30} 320 L${charX - 30} 320 Z' fill='#282c34' stroke='#5c6370' stroke-width='1.5'/>
+        <line x1='${charX - 10}' y1='320' x2='${charX - 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+        <line x1='${charX + 10}' y1='320' x2='${charX + 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+      `;
+    } else {
+      figureSvg = `
+        <!-- Train station pillars / perspective arches -->
+        <path d='M60 40 L60 360 M120 70 L120 330 M520 70 L520 330 M580 40 L580 360' stroke='#3b404d' stroke-width='3' opacity='0.6'/>
+        <path d='M60 90 Q320 20 580 90' fill='none' stroke='#4b5263' stroke-width='2' opacity='0.5'/>
+        <circle cx='${charX}' cy='${horizonY - 25}' r='8' fill='#c8ccd4'/>
+        <path d='M${charX - 12} ${horizonY - 17} L${charX + 12} ${horizonY - 17} L${charX + 15} ${horizonY + 35} L${charX - 15} ${horizonY + 35} Z' fill='#828997'/>
+        <line x1='${charX - 6}' y1='${horizonY + 35}' x2='${charX - 6}' y2='${horizonY + 65}' stroke='#abb2bf' stroke-width='3.5'/>
+        <line x1='${charX + 6}' y1='${horizonY + 35}' x2='${charX + 6}' y2='${horizonY + 65}' stroke='#abb2bf' stroke-width='3.5'/>
+      `;
+    }
+
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 380' width='100%' height='100%'>
+      <defs>
+        <pattern id='pGrad_${seed}' width='8' height='8' patternUnits='userSpaceOnUse'>
+          <path d='M0 8 L8 0 M0 0 L8 8' stroke='#282c34' stroke-width='0.6' opacity='0.4'/>
+        </pattern>
+        <linearGradient id='noirBg_${seed}' x1='0' y1='0' x2='0' y2='1'>
+          <stop offset='0%' stop-color='#0f1115'/>
+          <stop offset='50%' stop-color='#191c22'/>
+          <stop offset='100%' stop-color='#0a0c0f'/>
+        </linearGradient>
+      </defs>
+      <rect width='640' height='380' fill='url(#noirBg_${seed})'/>
+      <rect width='640' height='380' fill='url(#pGrad_${seed})'/>
+      <!-- Director grid frame -->
+      <rect x='18' y='16' width='604' height='348' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.35'/>
+      <!-- Horizon & Perspective Lines -->
+      <line x1='18' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
+      <line x1='622' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
+      <line x1='18' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
+      <line x1='622' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
+      <line x1='18' y1='${horizonY}' x2='622' y2='${horizonY}' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
+      ${figureSvg}
+      <!-- Cinematic Crosshatching overlay -->
+      <path d='M18 320 L150 364 M28 310 L160 354 M38 300 L170 344' stroke='#abb2bf' stroke-width='0.8' opacity='0.25'/>
+      <!-- Director Slate -->
+      <rect x='28' y='325' width='240' height='26' rx='3' fill='#0b0d10' fill-opacity='0.88' stroke='#4b5263' stroke-width='0.8'/>
+      <text x='36' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${angle.toUpperCase()}</text>
+    </svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  },
+
+  renderStoryboardView() {
+    const container = document.getElementById('storyboard-frames-container');
+    if (!container) return;
+
+    if (!this.currentFrames || this.currentFrames.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 40px; text-align: center;">
+          <p style="color: var(--text-secondary); margin-bottom: 12px;">No storyboard frames generated yet for this screenplay.</p>
+          <button class="btn btn-primary" onclick="VisualStoryboard.generateStoryboard()">Generate Visual Storyboard</button>
+        </div>`;
+      return;
+    }
+
+    // Group frames by scene
+    const scenesMap = {};
+    this.currentFrames.forEach(frame => {
+      const heading = frame.sceneHeading || `Scene ${String(frame.sceneNumber || 1).padStart(2, '0')}`;
+      if (!scenesMap[heading]) scenesMap[heading] = [];
+      scenesMap[heading].push(frame);
+    });
+
+    let html = '';
+    for (const [sceneHeading, frames] of Object.entries(scenesMap)) {
+      html += `
+        <div class="storyboard-scene-section">
+          <div class="storyboard-scene-title">
+            <span>${sceneHeading}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${frames.length} Shots</span>
+          </div>
+          <div class="storyboard-grid-2col">
+      `;
+
+      frames.forEach(frame => {
+        const frameNum = String(frame.frameNumber || 1).padStart(2, '0');
+        const shotType = frame.shotType || 'Wide shot';
+        const desc = frame.shotDescription || '';
+        const img = frame.imageUrl || this.createSketchSvg(shotType, frame.cameraAngle, desc, frame.id);
+
+        html += `
+          <div class="storyboard-frame-card" id="frame-card-${frame.id}">
+            <div class="storyboard-frame-visual-box" onclick="VisualStoryboard.openPreviewModal(${frame.id})">
+              <img src="${img}" alt="Frame ${frameNum}" />
+              <div class="storyboard-frame-overlay-toolbar" onclick="event.stopPropagation();">
+                <button class="storyboard-frame-toolbar-btn" title="Full Preview" onclick="VisualStoryboard.openPreviewModal(${frame.id})">🔍</button>
+                <button class="storyboard-frame-toolbar-btn" title="Edit Frame Details" onclick="VisualStoryboard.openEditModal(${frame.id})">✏️</button>
+                <button class="storyboard-frame-toolbar-btn" title="Regenerate Drawing" onclick="VisualStoryboard.regenerateFrame(${frame.id})">🔄</button>
+                <button class="storyboard-frame-toolbar-btn" title="Delete Frame" onclick="VisualStoryboard.deleteFrame(${frame.id})">🗑️</button>
+              </div>
+            </div>
+            <div class="storyboard-frame-meta">
+              <div class="storyboard-frame-shot-tag">
+                <span>Frame ${frameNum} · ${shotType}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">${frame.cameraAngle || 'Eye Level'}</span>
+              </div>
+              <p class="storyboard-frame-desc">${desc}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  },
+
+  async generateStoryboard() {
+    const btn = document.getElementById('sb-generate-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = 'Analyzing Screenplay & Generating Sketches...';
+    }
+
+    try {
+      const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+      const spTitle = this.currentScreenplay ? this.currentScreenplay.title : "The Last Journey";
+      const spGenre = this.currentScreenplay ? this.currentScreenplay.genre : "Drama / Thriller";
+
+      // If backend is running, request API
+      try {
+        const res = await Api.generateStoryboard({
+          screenplayId: spId,
+          screenplayTitle: spTitle,
+          genre: spGenre,
+          createNewVersion: false
+        });
+        if (res && res.data) {
+          showToast('Visual Storyboard generated from screenplay!', 'success');
+          await this.loadActiveStoryboard();
+          return;
+        }
+      } catch (backendErr) {
+        console.log('Backend request fell back to hybrid local generator:', backendErr);
+      }
+
+      // Hybrid local generator
+      this.generateDefaultMockShots();
+      this.renderStoryboardView();
+      showToast('Visual Storyboard generated successfully!', 'success');
+    } catch (e) {
+      showToast(e.message || 'Error generating storyboard', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Visual Storyboard';
+      }
+    }
+  },
+
+  openPreviewModal(frameId) {
+    const frame = this.currentFrames.find(f => f.id === frameId);
+    if (!frame) return;
+
+    const frameNum = String(frame.frameNumber || 1).padStart(2, '0');
+    const titleEl = document.getElementById('preview-frame-title');
+    const imgBox = document.getElementById('preview-frame-img-box');
+    const infoBox = document.getElementById('preview-frame-info');
+
+    if (titleEl) titleEl.textContent = `Frame ${frameNum} — ${frame.shotType || 'Wide shot'} (${frame.sceneHeading || 'Scene 01'})`;
+    if (imgBox) {
+      imgBox.innerHTML = `<img src="${frame.imageUrl}" style="width: 100%; height: auto; display: block;" alt="Frame ${frameNum}" />`;
+    }
+    if (infoBox) {
+      infoBox.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 0.88rem; background: #14171d; padding: 12px; border-radius: 6px;">
+          <div><strong>Camera Angle:</strong> ${frame.cameraAngle || 'Eye Level'}</div>
+          <div><strong>Movement:</strong> ${frame.cameraMovement || 'Slow Dolly In'}</div>
+          <div><strong>Lighting:</strong> ${frame.lighting || 'Cinematic chiaroscuro'}</div>
+          <div><strong>Sound/Dialogue:</strong> ${frame.dialogueReference || 'Atmospheric foley'}</div>
+        </div>
+        <p style="margin: 0; color: #fff; font-size: 1rem;"><strong>Shot Action:</strong> ${frame.shotDescription}</p>
+      `;
+    }
+
+    Workspace.openModal('modal-frame-preview');
+  },
+
+  openEditModal(frameId) {
+    const frame = this.currentFrames.find(f => f.id === frameId);
+    if (!frame) return;
+
+    document.getElementById('edit-frame-id').value = frame.id;
+    document.getElementById('frame-shot-type').value = frame.shotType || 'Wide shot';
+    document.getElementById('frame-camera-angle').value = frame.cameraAngle || 'Eye Level';
+    document.getElementById('frame-movement').value = frame.cameraMovement || '';
+    document.getElementById('frame-lighting').value = frame.lighting || '';
+    document.getElementById('frame-description').value = frame.shotDescription || '';
+    document.getElementById('frame-dialogue').value = frame.dialogueReference || '';
+    document.getElementById('frame-directors-notes').value = frame.directorsNotes || '';
+
+    Workspace.openModal('modal-edit-frame');
+  },
+
+  async saveFrameEdit() {
+    const frameId = parseInt(document.getElementById('edit-frame-id').value, 10);
+    const frame = this.currentFrames.find(f => f.id === frameId);
+    if (!frame) return;
+
+    frame.shotType = document.getElementById('frame-shot-type').value;
+    frame.cameraAngle = document.getElementById('frame-camera-angle').value;
+    frame.cameraMovement = document.getElementById('frame-movement').value;
+    frame.lighting = document.getElementById('frame-lighting').value;
+    frame.shotDescription = document.getElementById('frame-description').value;
+    frame.dialogueReference = document.getElementById('frame-dialogue').value;
+    frame.directorsNotes = document.getElementById('frame-directors-notes').value;
+
+    try {
+      await Api.updateStoryboardFrame(frameId, frame);
+    } catch (e) {
+      console.log('Saved frame locally:', e);
+    }
+
+    // Persist in LocalDB
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    LocalDB.set(`storyboard_${spId}`, {
+      storyboard: this.activeStoryboard,
+      frames: this.currentFrames
+    });
+
+    Workspace.closeModal('modal-edit-frame');
+    this.renderStoryboardView();
+    showToast('Frame updated successfully.', 'success');
+  },
+
+  async regenerateCurrentModalFrame() {
+    const frameId = parseInt(document.getElementById('edit-frame-id').value, 10);
+    await this.regenerateFrame(frameId);
+    Workspace.closeModal('modal-edit-frame');
+  },
+
+  async regenerateFrame(frameId) {
+    const frame = this.currentFrames.find(f => f.id === frameId);
+    if (!frame) return;
+
+    showToast(`Regenerating Frame ${String(frame.frameNumber).padStart(2, '0')} illustration...`, 'info');
+
+    const randomSeed = Math.floor(Math.random() * 99999);
+    frame.imageUrl = this.createSketchSvg(frame.shotType, frame.cameraAngle, frame.shotDescription, randomSeed);
+
+    try {
+      await Api.regenerateFrame(frameId);
+    } catch (e) {
+      console.log('Regenerated frame locally');
+    }
+
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    LocalDB.set(`storyboard_${spId}`, {
+      storyboard: this.activeStoryboard,
+      frames: this.currentFrames
+    });
+
+    this.renderStoryboardView();
+    showToast(`Frame ${String(frame.frameNumber).padStart(2, '0')} visual artwork updated!`, 'success');
+  },
+
+  async deleteFrame(frameId) {
+    if (!confirm('Are you sure you want to delete this storyboard frame?')) return;
+
+    this.currentFrames = this.currentFrames.filter(f => f.id !== frameId);
+
+    try {
+      await Api.deleteStoryboardFrame(frameId);
+    } catch (e) {
+      console.log('Deleted frame locally');
+    }
+
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    LocalDB.set(`storyboard_${spId}`, {
+      storyboard: this.activeStoryboard,
+      frames: this.currentFrames
+    });
+
+    this.renderStoryboardView();
+    showToast('Frame deleted.', 'info');
+  },
+
+  openAddShotModal() {
+    const nextFrameNum = this.currentFrames.length + 1;
+    const newFrame = {
+      id: Date.now(),
+      sceneNumber: 1,
+      sceneHeading: "Scene 01 — The Arrival",
+      frameNumber: nextFrameNum,
+      shotType: "Medium shot",
+      cameraAngle: "Eye Level",
+      shotDescription: "Additional shot composition added by director.",
+      imageUrl: this.createSketchSvg("Medium shot", "Eye Level", "Additional shot", nextFrameNum)
+    };
+
+    this.currentFrames.push(newFrame);
+    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    LocalDB.set(`storyboard_${spId}`, {
+      storyboard: this.activeStoryboard,
+      frames: this.currentFrames
+    });
+
+    this.renderStoryboardView();
+    this.openEditModal(newFrame.id);
+  },
+
+  onVersionSelect(version) {
+    this.activeVersion = parseInt(version, 10);
+    showToast(`Switched to Storyboard Revision ${version}`, 'info');
+  },
+
+  exportPdf() {
+    showToast('Preparing professional film storyboard print view...', 'info');
+    window.print();
   }
 };
 

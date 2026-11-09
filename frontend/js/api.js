@@ -728,6 +728,39 @@ Elena presses her thumb against the watch's winding crown. Her heart hammers in 
 
   convertIdeaToScreenplay(id) {
     return this.request(`/vault/${id}/convert-to-screenplay`, { method: 'POST' });
+  },
+
+  // Visual Storyboard
+  getStoryboards() {
+    return this.request('/storyboards');
+  },
+
+  getStoryboardsByScreenplay(screenplayId) {
+    return this.request(`/storyboards/screenplay/${screenplayId}`);
+  },
+
+  getStoryboardFrames(storyboardId) {
+    return this.request(`/storyboards/${storyboardId}/frames`);
+  },
+
+  generateStoryboard(payload) {
+    return this.request('/storyboards/generate', { method: 'POST', body: JSON.stringify(payload) });
+  },
+
+  updateStoryboardFrame(frameId, payload) {
+    return this.request(`/storyboards/frames/${frameId}`, { method: 'PUT', body: JSON.stringify(payload) });
+  },
+
+  regenerateFrame(frameId) {
+    return this.request(`/storyboards/frames/${frameId}/regenerate`, { method: 'POST' });
+  },
+
+  deleteStoryboardFrame(frameId) {
+    return this.request(`/storyboards/frames/${frameId}`, { method: 'DELETE' });
+  },
+
+  deleteStoryboard(storyboardId) {
+    return this.request(`/storyboards/${storyboardId}`, { method: 'DELETE' });
   }
 };
 

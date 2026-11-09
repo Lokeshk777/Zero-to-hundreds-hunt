@@ -717,3 +717,296 @@
   }
 }
 
+/* ==========================================================================
+   VISUAL STORYBOARD GENERATOR (MATCHING PROPOSED FILM UI)
+   ========================================================================== */
+.storyboard-workspace-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 10px 0 40px 0;
+}
+
+.storyboard-top-panel {
+  background: transparent;
+  margin-bottom: 24px;
+}
+
+.storyboard-badge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.studio-super-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.status-pill.status-ready {
+  background: rgba(35, 134, 54, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(63, 185, 80, 0.4);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.storyboard-main-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin: 0 0 6px 0;
+}
+
+.storyboard-sub-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* Screenplay Selection Card */
+.storyboard-screenplay-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.storyboard-film-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.storyboard-dropdown-select {
+  background: #14171c;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.storyboard-dropdown-select:focus {
+  border-color: var(--accent);
+}
+
+.storyboard-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storyboard-meta-row {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.badge-saved {
+  display: inline-block;
+  background: rgba(35, 134, 54, 0.2);
+  color: #56d364;
+  border: 1px solid rgba(86, 211, 100, 0.3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.btn-generate-storyboard {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px 20px;
+  background: #0f1115;
+  color: #ffffff;
+  border: 1px solid #30363d;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-generate-storyboard:hover {
+  background: #1b1f27;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+/* Storyboard Content & Scenes */
+.storyboard-content-stream {
+  margin-top: 28px;
+}
+
+.storyboard-scene-section {
+  margin-bottom: 32px;
+}
+
+.storyboard-scene-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 2-Column Storyboard Grid */
+.storyboard-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .storyboard-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.storyboard-frame-card {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.storyboard-frame-visual-box {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #0a0c10;
+  border: 1px solid #282e38;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.storyboard-frame-visual-box:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.storyboard-frame-visual-box img,
+.storyboard-frame-visual-box svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.storyboard-frame-overlay-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: rgba(10, 12, 16, 0.75);
+  backdrop-filter: blur(4px);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.storyboard-frame-visual-box:hover .storyboard-frame-overlay-toolbar {
+  opacity: 1;
+}
+
+.storyboard-frame-toolbar-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  padding: 4px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s;
+}
+
+.storyboard-frame-toolbar-btn:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+.storyboard-frame-meta {
+  padding: 10px 2px 4px 2px;
+}
+
+.storyboard-frame-shot-tag {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.storyboard-frame-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.storyboard-footer-note {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Printable PDF Storyboard View */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #mod-storyboard, #mod-storyboard * {
+    visibility: visible;
+  }
+  #mod-storyboard {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .sidebar, .top-bar, .storyboard-actions-group, .btn-generate-storyboard, .storyboard-frame-overlay-toolbar {
+    display: none !important;
+  }
+  .storyboard-grid-2col {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+  .storyboard-frame-visual-box {
+    border: 1px solid #000 !important;
+  }
+}
+

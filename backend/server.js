@@ -237,6 +237,153 @@ app.post('/api/ai-mentor', (req, res) => {
   res.json({ answer: "Hello! AI Mentor is fully active." });
 });
 
+// ==========================================
+// 6. VISUAL STORYBOARD ENDPOINTS (HYBRID API)
+// ==========================================
+let storyboardsStore = [];
+let storyboardFramesStore = [];
+
+function generateSvgSketch(shotType, cameraAngle, desc, seed) {
+  const type = shotType || 'Wide shot';
+  const angle = cameraAngle || 'Eye Level';
+  const cleanDesc = desc || 'Cinematic shot composition';
+  const hash = Math.abs((cleanDesc + seed + angle).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
+  const charX = 220 + (hash % 160);
+  const horizonY = 170 + (hash % 50);
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 380' width='100%' height='100%'>
+    <defs>
+      <pattern id='pencilGrad' width='8' height='8' patternUnits='userSpaceOnUse'>
+        <path d='M0 8 L8 0 M0 0 L8 8' stroke='#262a33' stroke-width='0.6' opacity='0.35'/>
+      </pattern>
+      <linearGradient id='noirBg' x1='0' y1='0' x2='0' y2='1'>
+        <stop offset='0%' stop-color='#0f1115'/>
+        <stop offset='50%' stop-color='#181b22'/>
+        <stop offset='100%' stop-color='#0a0c0f'/>
+      </linearGradient>
+    </defs>
+    <rect width='640' height='380' fill='url(#noirBg)'/>
+    <rect width='640' height='380' fill='url(#pencilGrad)'/>
+    <rect x='20' y='18' width='600' height='344' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.4'/>
+    <line x1='20' y1='18' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
+    <line x1='620' y1='18' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
+    <line x1='20' y1='362' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
+    <line x1='620' y1='362' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
+    <line x1='20' y1='${horizonY}' x2='620' y2='${horizonY}' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
+    ${type.toLowerCase().includes('close') 
+      ? `<circle cx='320' cy='150' r='55' fill='#21252b' stroke='#c8ccd4' stroke-width='2.5'/>
+         <path d='M265 140 Q320 80 375 140 Q380 90 320 85 Q260 90 265 140' fill='#abb2bf'/>
+         <path d='M295 140 Q320 145 345 140' stroke='#abb2bf' stroke-width='2' fill='none'/>
+         <circle cx='302' cy='150' r='4' fill='#fff'/><circle cx='338' cy='150' r='4' fill='#fff'/>
+         <path d='M320 150 L318 175 L328 175' stroke='#c8ccd4' stroke-width='2' fill='none'/>
+         <path d='M308 190 Q320 195 332 190' stroke='#c8ccd4' stroke-width='2.2' fill='none'/>
+         <path d='M230 250 L270 205 L320 230 L370 205 L410 250 L440 360 L200 360 Z' fill='#1e2227' stroke='#828997' stroke-width='2'/>`
+      : `<path d='M60 40 L60 360 M120 70 L120 330 M520 70 L520 330 M580 40 L580 360' stroke='#3b404d' stroke-width='3' opacity='0.6'/>
+         <circle cx='${charX}' cy='${horizonY - 25}' r='7' fill='#c8ccd4'/>
+         <path d='M${charX - 10} ${horizonY - 18} L${charX + 10} ${horizonY - 18} L${charX + 14} ${horizonY + 35} L${charX - 14} ${horizonY + 35} Z' fill='#9da5b4'/>
+         <line x1='${charX - 6}' y1='${horizonY + 35}' x2='${charX - 6}' y2='${horizonY + 60}' stroke='#abb2bf' stroke-width='3.5'/>
+         <line x1='${charX + 6}' y1='${horizonY + 35}' x2='${charX + 6}' y2='${horizonY + 60}' stroke='#abb2bf' stroke-width='3.5'/>`
+    }
+    <rect x='30' y='325' width='230' height='26' rx='3' fill='#0b0d10' fill-opacity='0.85' stroke='#4b5263' stroke-width='0.8'/>
+    <text x='38' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${angle.toUpperCase()}</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+app.get('/api/storyboards', (req, res) => {
+  res.json({ data: storyboardsStore });
+});
+
+app.get('/api/storyboards/screenplay/:screenplayId', (req, res) => {
+  const spId = parseInt(req.params.screenplayId, 10);
+  const found = storyboardsStore.filter(s => s.screenplayId === spId);
+  res.json({ data: found });
+});
+
+app.get('/api/storyboards/:id/frames', (req, res) => {
+  const sbId = parseInt(req.params.id, 10);
+  const frames = storyboardFramesStore.filter(f => f.storyboardId === sbId);
+  res.json({ data: frames });
+});
+
+app.post('/api/storyboards/generate', (req, res) => {
+  const { screenplayId, screenplayTitle, genre, createNewVersion } = req.body;
+  const spId = parseInt(screenplayId, 10) || 1;
+  const title = screenplayTitle || "The Last Journey";
+
+  let existing = storyboardsStore.filter(s => s.screenplayId === spId);
+  let version = 1;
+  if (existing.length > 0 && createNewVersion) {
+    version = Math.max(...existing.map(s => s.versionNumber || 1)) + 1;
+  }
+
+  const newSb = {
+    id: storyboardsStore.length + 1,
+    screenplayId: spId,
+    title: title,
+    genre: genre || "Drama / Thriller",
+    versionNumber: version,
+    versionName: `Revision ${version}`,
+    totalScenes: 1,
+    totalFrames: 4,
+    status: "READY",
+    updatedAt: new Date().toISOString()
+  };
+
+  storyboardsStore.unshift(newSb);
+
+  // Generate default shots matching prompt reference
+  const shots = [
+    { frameNumber: 1, shotType: "Wide shot", cameraAngle: "Eye Level", desc: "Character enters railway station.", heading: "Scene 01 — The Arrival" },
+    { frameNumber: 2, shotType: "Close-up", cameraAngle: "Low Angle", desc: "Character checks his watch.", heading: "Scene 01 — The Arrival" },
+    { frameNumber: 3, shotType: "Over-the-shoulder", cameraAngle: "Dutch Angle", desc: "He notices someone on the platform.", heading: "Scene 01 — The Arrival" },
+    { frameNumber: 4, shotType: "Long shot", cameraAngle: "High Angle", desc: "Mysterious figure stands in the distance.", heading: "Scene 01 — The Arrival" }
+  ];
+
+  shots.forEach((s, idx) => {
+    storyboardFramesStore.push({
+      id: storyboardFramesStore.length + 1,
+      storyboardId: newSb.id,
+      sceneNumber: 1,
+      sceneHeading: s.heading,
+      frameNumber: s.frameNumber,
+      shotType: s.shotType,
+      cameraAngle: s.cameraAngle,
+      shotDescription: s.desc,
+      imageUrl: generateSvgSketch(s.shotType, s.cameraAngle, s.desc, idx + 1),
+      displayOrder: idx + 1
+    });
+  });
+
+  res.json({ data: newSb, message: "Visual Storyboard generated successfully" });
+});
+
+app.post('/api/storyboards/frames/:id/regenerate', (req, res) => {
+  const frameId = parseInt(req.params.id, 10);
+  const frame = storyboardFramesStore.find(f => f.id === frameId);
+  if (frame) {
+    frame.imageUrl = generateSvgSketch(frame.shotType, frame.cameraAngle, frame.shotDescription, Date.now());
+    return res.json({ data: frame, message: "Frame regenerated" });
+  }
+  res.status(404).json({ message: "Frame not found" });
+});
+
+app.put('/api/storyboards/frames/:id', (req, res) => {
+  const frameId = parseInt(req.params.id, 10);
+  const frame = storyboardFramesStore.find(f => f.id === frameId);
+  if (frame) {
+    Object.assign(frame, req.body);
+    return res.json({ data: frame, message: "Frame updated" });
+  }
+  res.status(404).json({ message: "Frame not found" });
+});
+
+app.delete('/api/storyboards/frames/:id', (req, res) => {
+  const frameId = parseInt(req.params.id, 10);
+  storyboardFramesStore = storyboardFramesStore.filter(f => f.id !== frameId);
+  res.json({ message: "Frame deleted successfully" });
+});
+
 // 5. RESET DATA ENDPOINT
 app.get('/api/auth/clear', (req, res) => {
   users = [];

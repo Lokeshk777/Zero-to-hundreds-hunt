@@ -27,6 +27,9 @@
         <div class="nav-item" data-module="screenwriting" onclick="Workspace.switchModule('screenwriting')">
           <i>✍️</i> <span>Screenwriting Studio</span>
         </div>
+        <div class="nav-item" data-module="storyboard" onclick="Workspace.switchModule('storyboard')">
+          <i>🎨</i> <span>Visual Storyboard</span>
+        </div>
         <div class="nav-item" data-module="ai-mentor" onclick="Workspace.switchModule('ai-mentor')">
           <i>🧠</i> <span>AI Mentor</span>
         </div>
@@ -698,6 +701,67 @@ Dialogue goes here.
           </div>
         </section>
 
+        <!-- ============================================================== -->
+        <!-- MODULE: VISUAL STORYBOARD GENERATOR                             -->
+        <!-- ============================================================== -->
+        <section id="mod-storyboard" class="module-container">
+          <div class="storyboard-workspace-container">
+            <!-- Header bar matching reference mockup -->
+            <div class="storyboard-top-panel">
+              <div class="storyboard-badge-header">
+                <span class="studio-super-tag">ZERO TO HUNDRED'S HUNT</span>
+                <span class="status-pill status-ready">Proposed UI</span>
+              </div>
+              <h1 class="storyboard-main-title">Visual Storyboard</h1>
+              <div class="storyboard-sub-label">SELECT A SAVED SCREENPLAY</div>
+
+              <!-- Screenplay Selection Card -->
+              <div class="storyboard-screenplay-card">
+                <div class="storyboard-card-info">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                      <h2 id="sb-active-screenplay-title" class="storyboard-film-title">The Last Journey</h2>
+                      <select id="sb-screenplay-dropdown" class="storyboard-dropdown-select" onchange="VisualStoryboard.onScreenplaySelect(this.value)">
+                        <option value="">Switch Screenplay...</option>
+                      </select>
+                    </div>
+                    <div class="storyboard-actions-group">
+                      <select id="sb-version-dropdown" class="storyboard-dropdown-select" style="min-width: 140px;" onchange="VisualStoryboard.onVersionSelect(this.value)">
+                        <option value="1">Revision 1 (Active)</option>
+                      </select>
+                      <button class="btn btn-secondary btn-sm" onclick="VisualStoryboard.exportPdf()" title="Export Storyboard as PDF">
+                        📄 Export PDF
+                      </button>
+                      <button class="btn btn-secondary btn-sm" onclick="VisualStoryboard.openAddShotModal()" title="Add Custom Shot">
+                        + Add Shot
+                      </button>
+                    </div>
+                  </div>
+                  <div class="storyboard-meta-row">
+                    <span id="sb-active-meta">Drama / Thriller · 12 scenes · Updated recently</span>
+                  </div>
+                  <div style="margin-top: 8px;">
+                    <span class="badge-saved">Saved</span>
+                  </div>
+                </div>
+
+                <button id="sb-generate-btn" class="btn-generate-storyboard" onclick="VisualStoryboard.generateStoryboard()">
+                  Generate Visual Storyboard
+                </button>
+              </div>
+            </div>
+
+            <!-- Storyboard Content Stream -->
+            <div id="storyboard-frames-container" class="storyboard-content-stream">
+              <!-- Dynamically populated scenes and shot frames -->
+            </div>
+
+            <div class="storyboard-footer-note">
+              <span>Illustrative interface example, rendered with director-grade visual sketch compositions from saved screenplay scenes.</span>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
@@ -1118,11 +1182,93 @@ Dialogue goes here.
     </div>
   </div>
 
+  <!-- Modal: Edit Storyboard Frame -->
+  <div id="modal-edit-frame" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="frame-modal-title">Edit Storyboard Frame</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-edit-frame')">✕</button>
+      </div>
+      <form id="edit-frame-form" onsubmit="event.preventDefault(); VisualStoryboard.saveFrameEdit();">
+        <input type="hidden" id="edit-frame-id">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Shot Type *</label>
+            <select id="frame-shot-type" required>
+              <option value="Wide shot">Wide shot</option>
+              <option value="Extreme Wide Shot">Extreme Wide Shot</option>
+              <option value="Close-up">Close-up</option>
+              <option value="Extreme Close-up">Extreme Close-up</option>
+              <option value="Medium shot">Medium shot</option>
+              <option value="Over-the-shoulder">Over-the-shoulder</option>
+              <option value="Long shot">Long shot</option>
+              <option value="Point of View (POV)">Point of View (POV)</option>
+              <option value="Low Angle Shot">Low Angle Shot</option>
+              <option value="Bird's Eye Shot">Bird's Eye Shot</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Camera Angle</label>
+            <select id="frame-camera-angle">
+              <option value="Eye Level">Eye Level</option>
+              <option value="Low Angle">Low Angle</option>
+              <option value="High Angle">High Angle</option>
+              <option value="Dutch Angle">Dutch Angle</option>
+              <option value="Overhead">Overhead</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Camera Movement</label>
+            <input type="text" id="frame-movement" placeholder="Slow Dolly In, Tracking, Handheld, Pan">
+          </div>
+          <div class="form-group">
+            <label>Lighting Setup</label>
+            <input type="text" id="frame-lighting" placeholder="High-contrast noir, tungsten, rim light">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Shot Action Description *</label>
+          <textarea id="frame-description" rows="3" placeholder="Character actions, environment, emotional cues..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Dialogue / Sound Cue (Optional)</label>
+          <input type="text" id="frame-dialogue" placeholder="Spoken dialogue or sound effect in this frame">
+        </div>
+        <div class="form-group">
+          <label>Director's Production Notes</label>
+          <textarea id="frame-directors-notes" rows="2" placeholder="Lenses, actor choreography, safety notes..."></textarea>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">SAVE FRAME DETAILS</button>
+          <button type="button" class="btn btn-secondary" onclick="VisualStoryboard.regenerateCurrentModalFrame()">🎨 REGENERATE ARTWORK</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Fullsize Storyboard Frame Preview -->
+  <div id="modal-frame-preview" class="modal-overlay">
+    <div class="modal-content" style="max-width: 860px; background: #0c0e12; border: 1px solid #2d333f; padding: 20px;">
+      <div class="modal-header" style="border-bottom: 1px solid #1f242d; padding-bottom: 12px; margin-bottom: 16px;">
+        <h3 id="preview-frame-title" style="color: #fff; font-size: 1.1rem;">Frame 01 Preview</h3>
+        <button class="modal-close" onclick="Workspace.closeModal('modal-frame-preview')">✕</button>
+      </div>
+      <div id="preview-frame-img-box" style="width: 100%; border-radius: 8px; overflow: hidden; background: #000; box-shadow: 0 8px 30px rgba(0,0,0,0.8);">
+        <!-- Injected full image/svg -->
+      </div>
+      <div id="preview-frame-info" style="margin-top: 16px; color: #abb2bf; font-size: 0.95rem; line-height: 1.6;">
+        <!-- Injected descriptions -->
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
   <!-- Scripts (Cache-busted) -->
-  <script src="../js/api.js?v=2.1"></script>
-  <script src="../js/ai-mentor.js?v=2.1"></script>
-  <script src="../js/dashboard.js?v=2.1"></script>
+  <script src="../js/api.js?v=2.2"></script>
+  <script src="../js/ai-mentor.js?v=2.2"></script>
+  <script src="../js/dashboard.js?v=2.2"></script>
 </body>
 </html>
