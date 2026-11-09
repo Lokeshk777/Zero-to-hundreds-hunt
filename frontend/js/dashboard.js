@@ -8,22 +8,38 @@ const Workspace = {
   activeModule: 'dashboard',
 
   async init() {
-    Auth.requireAuth();
-    this.currentUser = Auth.getUser();
+    try {
+      Auth.requireAuth();
+      this.currentUser = Auth.getUser();
 
-    // Setup UI
-    this.setupUserInfo();
-    this.setupNavigation();
-    this.setupModals();
+      // Setup UI immediately so navigation works even if backend requests take time
+      this.setupUserInfo();
+      this.setupNavigation();
+      this.setupModals();
+    } catch (e) {
+      console.warn('UI setup warning:', e);
+    }
 
     // Load initial dashboard statistics
-    await this.loadDashboardStats();
+    try {
+      await this.loadDashboardStats();
+    } catch (e) {
+      console.warn('Stats load warning:', e);
+    }
 
     // Preload Screenplay list for selector dropdowns
-    await ScreenwritingStudio.loadScreenplays();
+    try {
+      await ScreenwritingStudio.loadScreenplays();
+    } catch (e) {
+      console.warn('Screenplay preload warning:', e);
+    }
 
     // Preload Production projects
-    await ProductionPipeline.loadProjects();
+    try {
+      await ProductionPipeline.loadProjects();
+    } catch (e) {
+      console.warn('Production preload warning:', e);
+    }
   },
 
   setupUserInfo() {
