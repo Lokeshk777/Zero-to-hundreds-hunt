@@ -243,49 +243,108 @@ app.post('/api/ai-mentor', (req, res) => {
 let storyboardsStore = [];
 let storyboardFramesStore = [];
 
-function generateSvgSketch(shotType, cameraAngle, desc, seed) {
+function generateSvgSketch(shotType, cameraAngle, desc, seed, charactersList, location) {
   const type = shotType || 'Wide shot';
   const angle = cameraAngle || 'Eye Level';
   const cleanDesc = desc || 'Cinematic shot composition';
-  const hash = Math.abs((cleanDesc + seed + angle).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
+  const cleanLoc = (location || 'INTERIOR / EXTERIOR SCENE').toUpperCase();
+  const hash = Math.abs((cleanDesc + seed + angle + cleanLoc).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
   const charX = 220 + (hash % 160);
-  const horizonY = 170 + (hash % 50);
+  const horizonY = 160 + (hash % 50);
+
+  const isClose = type.toLowerCase().includes('close');
+  const isOverShoulder = type.toLowerCase().includes('over');
+  const isNight = cleanDesc.toLowerCase().includes('night') || cleanDesc.toLowerCase().includes('dark') || cleanLoc.includes('NIGHT');
+
+  const charName = Array.isArray(charactersList) && charactersList.length > 0 
+    ? (typeof charactersList[0] === 'object' ? charactersList[0].name : charactersList[0]) 
+    : 'PROTAGONIST';
+
+  let environmentSvg = '';
+  if (cleanLoc.includes('HOSPITAL') || cleanLoc.includes('CLINIC') || cleanLoc.includes('LAB')) {
+    environmentSvg = `
+      <rect x='40' y='60' width='80' height='260' fill='none' stroke='#4b5263' stroke-width='2'/>
+      <line x1='80' y1='60' x2='80' y2='320' stroke='#333842' stroke-width='1.5'/>
+      <rect x='480' y='80' width='110' height='160' rx='4' fill='#12151b' stroke='#5c6370' stroke-width='2'/>
+      <path d='M495 160 L515 160 L525 130 L540 190 L550 150 L560 165 L575 165' fill='none' stroke='#abb2bf' stroke-width='2'/>
+      <line x1='140' y1='40' x2='500' y2='40' stroke='#5c6370' stroke-width='4' opacity='0.5'/>
+      <line x1='24' y1='300' x2='616' y2='300' stroke='#3e4451' stroke-width='2'/>
+    `;
+  } else if (cleanLoc.includes('ROOFTOP') || cleanLoc.includes('STREET') || cleanLoc.includes('ALLEY') || cleanLoc.includes('CITY')) {
+    environmentSvg = `
+      <rect x='30' y='80' width='120' height='260' fill='#12151c' stroke='#3e4451' stroke-width='2'/>
+      <rect x='180' y='120' width='90' height='220' fill='#161922' stroke='#4b5263' stroke-width='1.8'/>
+      <rect x='460' y='60' width='140' height='280' fill='#141720' stroke='#3e4451' stroke-width='2'/>
+      <line x1='30' y1='280' x2='610' y2='280' stroke='#abb2bf' stroke-width='2'/>
+      <line x1='30' y1='260' x2='610' y2='260' stroke='#5c6370' stroke-width='1.5'/>
+      <line x1='30' y1='240' x2='610' y2='240' stroke='#5c6370' stroke-width='1.5'/>
+      <path d='M50 100 H130 M50 140 H130 M50 180 H130 M50 220 H130' stroke='#282c34' stroke-width='1.5'/>
+    `;
+  } else {
+    environmentSvg = `
+      <path d='M50 50 L50 350 M120 70 L120 330 M520 70 L520 330 M590 50 L590 350' stroke='#3e4451' stroke-width='2.5' opacity='0.7'/>
+      <path d='M50 80 Q320 30 590 80' fill='none' stroke='#4b5263' stroke-width='2' opacity='0.6'/>
+      <line x1='24' y1='310' x2='616' y2='310' stroke='#5c6370' stroke-width='2'/>
+    `;
+  }
+
+  let figureSvg = '';
+  if (isClose) {
+    figureSvg = `
+      <circle cx='320' cy='135' r='55' fill='#1b1f27' stroke='#abb2bf' stroke-width='2.2'/>
+      <path d='M265 130 Q320 65 375 130 Q385 75 320 70 Q255 75 265 130' fill='#5c6370'/>
+      <path d='M295 132 Q320 137 345 132' stroke='#abb2bf' stroke-width='2' fill='none'/>
+      <circle cx='305' cy='142' r='4' fill='#fff'/><circle cx='335' cy='142' r='4' fill='#fff'/>
+      <path d='M320 142 L317 165 L327 165' stroke='#c8ccd4' stroke-width='2' fill='none'/>
+      <path d='M308 180 Q320 185 332 180' stroke='#c8ccd4' stroke-width='2.2' fill='none'/>
+      <path d='M220 250 L265 195 L320 220 L375 195 L420 250 L450 360 L190 360 Z' fill='#161920' stroke='#5c6370' stroke-width='2'/>
+      <path d='M265 195 L295 280 M375 195 L345 280' stroke='#4b5263' stroke-width='2'/>
+      <text x='320' y='275' font-family='sans-serif' font-size='10' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
+    `;
+  } else if (isOverShoulder) {
+    figureSvg = `
+      <path d='M20 150 Q90 110 140 150 L180 360 L10 360 Z' fill='#0a0c0f' stroke='#3e4451' stroke-width='2'/>
+      <circle cx='95' cy='120' r='35' fill='#0a0c0f'/>
+      <circle cx='${charX}' cy='155' r='24' fill='#1b1f27' stroke='#abb2bf' stroke-width='2'/>
+      <path d='M${charX - 25} 179 L${charX + 25} 179 L${charX + 30} 310 L${charX - 30} 310 Z' fill='#242832' stroke='#5c6370' stroke-width='1.8'/>
+      <line x1='${charX - 10}' y1='310' x2='${charX - 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+      <line x1='${charX + 10}' y1='310' x2='${charX + 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+      <text x='${charX}' y='245' font-family='sans-serif' font-size='9' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
+    `;
+  } else {
+    figureSvg = `
+      <circle cx='${charX}' cy='${horizonY - 22}' r='10' fill='#c8ccd4'/>
+      <path d='M${charX - 14} ${horizonY - 12} L${charX + 14} ${horizonY - 12} L${charX + 18} ${horizonY + 45} L${charX - 18} ${horizonY + 45} Z' fill='#282c34' stroke='#828997' stroke-width='1.8'/>
+      <line x1='${charX - 7}' y1='${horizonY + 45}' x2='${charX - 7}' y2='${horizonY + 85}' stroke='#abb2bf' stroke-width='4'/>
+      <line x1='${charX + 7}' y1='${horizonY + 45}' x2='${charX + 7}' y2='${horizonY + 85}' stroke='#abb2bf' stroke-width='4'/>
+      <text x='${charX}' y='${horizonY + 22}' font-family='sans-serif' font-size='9' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
+    `;
+  }
 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 380' width='100%' height='100%'>
     <defs>
-      <pattern id='pencilGrad' width='8' height='8' patternUnits='userSpaceOnUse'>
-        <path d='M0 8 L8 0 M0 0 L8 8' stroke='#262a33' stroke-width='0.6' opacity='0.35'/>
+      <pattern id='pGrad_${seed}' width='8' height='8' patternUnits='userSpaceOnUse'>
+        <path d='M0 8 L8 0 M0 0 L8 8' stroke='#282c34' stroke-width='0.6' opacity='0.4'/>
       </pattern>
-      <linearGradient id='noirBg' x1='0' y1='0' x2='0' y2='1'>
-        <stop offset='0%' stop-color='#0f1115'/>
-        <stop offset='50%' stop-color='#181b22'/>
+      <linearGradient id='noirBg_${seed}' x1='0' y1='0' x2='0' y2='1'>
+        <stop offset='0%' stop-color='${isNight ? '#07080a' : '#0f1115'}'/>
+        <stop offset='50%' stop-color='${isNight ? '#0d0f14' : '#191c22'}'/>
         <stop offset='100%' stop-color='#0a0c0f'/>
       </linearGradient>
     </defs>
-    <rect width='640' height='380' fill='url(#noirBg)'/>
-    <rect width='640' height='380' fill='url(#pencilGrad)'/>
-    <rect x='20' y='18' width='600' height='344' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.4'/>
-    <line x1='20' y1='18' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
-    <line x1='620' y1='18' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
-    <line x1='20' y1='362' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
-    <line x1='620' y1='362' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
-    <line x1='20' y1='${horizonY}' x2='620' y2='${horizonY}' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
-    ${type.toLowerCase().includes('close') 
-      ? `<circle cx='320' cy='150' r='55' fill='#21252b' stroke='#c8ccd4' stroke-width='2.5'/>
-         <path d='M265 140 Q320 80 375 140 Q380 90 320 85 Q260 90 265 140' fill='#abb2bf'/>
-         <path d='M295 140 Q320 145 345 140' stroke='#abb2bf' stroke-width='2' fill='none'/>
-         <circle cx='302' cy='150' r='4' fill='#fff'/><circle cx='338' cy='150' r='4' fill='#fff'/>
-         <path d='M320 150 L318 175 L328 175' stroke='#c8ccd4' stroke-width='2' fill='none'/>
-         <path d='M308 190 Q320 195 332 190' stroke='#c8ccd4' stroke-width='2.2' fill='none'/>
-         <path d='M230 250 L270 205 L320 230 L370 205 L410 250 L440 360 L200 360 Z' fill='#1e2227' stroke='#828997' stroke-width='2'/>`
-      : `<path d='M60 40 L60 360 M120 70 L120 330 M520 70 L520 330 M580 40 L580 360' stroke='#3b404d' stroke-width='3' opacity='0.6'/>
-         <circle cx='${charX}' cy='${horizonY - 25}' r='7' fill='#c8ccd4'/>
-         <path d='M${charX - 10} ${horizonY - 18} L${charX + 10} ${horizonY - 18} L${charX + 14} ${horizonY + 35} L${charX - 14} ${horizonY + 35} Z' fill='#9da5b4'/>
-         <line x1='${charX - 6}' y1='${horizonY + 35}' x2='${charX - 6}' y2='${horizonY + 60}' stroke='#abb2bf' stroke-width='3.5'/>
-         <line x1='${charX + 6}' y1='${horizonY + 35}' x2='${charX + 6}' y2='${horizonY + 60}' stroke='#abb2bf' stroke-width='3.5'/>`
-    }
-    <rect x='30' y='325' width='230' height='26' rx='3' fill='#0b0d10' fill-opacity='0.85' stroke='#4b5263' stroke-width='0.8'/>
-    <text x='38' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${angle.toUpperCase()}</text>
+    <rect width='640' height='380' fill='url(#noirBg_${seed})'/>
+    <rect width='640' height='380' fill='url(#pGrad_${seed})'/>
+    <rect x='18' y='16' width='604' height='348' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.35'/>
+    <line x1='18' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+    <line x1='622' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+    <line x1='18' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
+    <line x1='622' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
+    <line x1='18' y1='${horizonY}' x2='622' y2='${horizonY}' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
+    ${environmentSvg}
+    ${figureSvg}
+    <path d='M18 320 L150 364 M28 310 L160 354 M38 300 L170 344' stroke='#abb2bf' stroke-width='0.8' opacity='0.25'/>
+    <rect x='28' y='325' width='280' height='26' rx='3' fill='#0b0d10' fill-opacity='0.9' stroke='#4b5263' stroke-width='0.8'/>
+    <text x='36' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${cleanLoc.slice(0, 15)}</text>
   </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
@@ -307,14 +366,21 @@ app.get('/api/storyboards/:id/frames', (req, res) => {
 });
 
 app.post('/api/storyboards/generate', (req, res) => {
-  const { screenplayId, screenplayTitle, genre, createNewVersion } = req.body;
+  const { screenplayId, screenplayTitle, genre, createNewVersion, scenes, characters, synopsis, storyConcept } = req.body;
   const spId = parseInt(screenplayId, 10) || 1;
-  const title = screenplayTitle || "The Last Journey";
+  const title = screenplayTitle || "Screenplay Story";
 
   let existing = storyboardsStore.filter(s => s.screenplayId === spId);
   let version = 1;
   if (existing.length > 0 && createNewVersion) {
     version = Math.max(...existing.map(s => s.versionNumber || 1)) + 1;
+  }
+
+  // Clear existing frames for this screenplay if not versioning
+  if (!createNewVersion) {
+    existing.forEach(sb => {
+      storyboardFramesStore = storyboardFramesStore.filter(f => f.storyboardId !== sb.id);
+    });
   }
 
   const newSb = {
@@ -324,38 +390,88 @@ app.post('/api/storyboards/generate', (req, res) => {
     genre: genre || "Drama / Thriller",
     versionNumber: version,
     versionName: `Revision ${version}`,
-    totalScenes: 1,
-    totalFrames: 4,
+    totalScenes: (scenes && scenes.length > 0) ? scenes.length : 1,
+    totalFrames: 0,
     status: "READY",
     updatedAt: new Date().toISOString()
   };
 
   storyboardsStore.unshift(newSb);
 
-  // Generate default shots matching prompt reference
-  const shots = [
-    { frameNumber: 1, shotType: "Wide shot", cameraAngle: "Eye Level", desc: "Character enters railway station.", heading: "Scene 01 — The Arrival" },
-    { frameNumber: 2, shotType: "Close-up", cameraAngle: "Low Angle", desc: "Character checks his watch.", heading: "Scene 01 — The Arrival" },
-    { frameNumber: 3, shotType: "Over-the-shoulder", cameraAngle: "Dutch Angle", desc: "He notices someone on the platform.", heading: "Scene 01 — The Arrival" },
-    { frameNumber: 4, shotType: "Long shot", cameraAngle: "High Angle", desc: "Mysterious figure stands in the distance.", heading: "Scene 01 — The Arrival" }
-  ];
+  const generatedFrames = [];
+  const chars = characters || [];
 
-  shots.forEach((s, idx) => {
-    storyboardFramesStore.push({
-      id: storyboardFramesStore.length + 1,
-      storyboardId: newSb.id,
-      sceneNumber: 1,
-      sceneHeading: s.heading,
-      frameNumber: s.frameNumber,
-      shotType: s.shotType,
-      cameraAngle: s.cameraAngle,
-      shotDescription: s.desc,
-      imageUrl: generateSvgSketch(s.shotType, s.cameraAngle, s.desc, idx + 1),
-      displayOrder: idx + 1
+  if (Array.isArray(scenes) && scenes.length > 0) {
+    scenes.forEach((sc, scIdx) => {
+      const scNum = sc.sceneNumber || (scIdx + 1);
+      const loc = sc.location || 'INTERIOR / EXTERIOR';
+      const heading = `Scene ${String(scNum).padStart(2, '0')} — ${loc}`;
+      const actionText = sc.actions || sc.description || `Action unfolds at ${loc}.`;
+
+      // Shot 1: Establishing Shot
+      generatedFrames.push({
+        id: storyboardFramesStore.length + generatedFrames.length + 1,
+        storyboardId: newSb.id,
+        sceneNumber: scNum,
+        sceneHeading: heading,
+        frameNumber: generatedFrames.length + 1,
+        shotType: "Wide shot",
+        cameraAngle: "Eye Level",
+        shotDescription: `Establishing shot of ${loc}. ${actionText.slice(0, 80)}`,
+        imageUrl: generateSvgSketch("Wide shot", "Eye Level", actionText, scNum * 10 + 1, chars, loc),
+        displayOrder: generatedFrames.length + 1
+      });
+
+      // Shot 2: Character Action Shot
+      generatedFrames.push({
+        id: storyboardFramesStore.length + generatedFrames.length + 1,
+        storyboardId: newSb.id,
+        sceneNumber: scNum,
+        sceneHeading: heading,
+        frameNumber: generatedFrames.length + 1,
+        shotType: "Close-up",
+        cameraAngle: "Low Angle",
+        shotDescription: actionText.length > 90 ? actionText.slice(0, 90) + '...' : actionText,
+        imageUrl: generateSvgSketch("Close-up", "Low Angle", actionText, scNum * 10 + 2, chars, loc),
+        displayOrder: generatedFrames.length + 1
+      });
     });
-  });
+  } else {
+    // Break down from synopsis or story concept
+    const combined = ((synopsis || '') + ' ' + (storyConcept || '')).replace(/<[^>]*>/g, ' ').trim();
+    const sentences = combined.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 15);
+    const beats = sentences.length > 0 ? sentences.slice(0, 4) : [
+      "Protagonist enters the central story location.",
+      "A sudden obstacle complicates their primary objective.",
+      "High emotional confrontation between key characters.",
+      "Climactic resolution and lingering narrative outcome."
+    ];
 
-  res.json({ data: newSb, message: "Visual Storyboard generated successfully" });
+    beats.forEach((bText, idx) => {
+      const shotTypes = ["Wide shot", "Close-up", "Over-the-shoulder", "Long shot"];
+      const angles = ["Eye Level", "Low Angle", "Dutch Angle", "High Angle"];
+      const sType = shotTypes[idx % shotTypes.length];
+      const sAngle = angles[idx % angles.length];
+
+      generatedFrames.push({
+        id: storyboardFramesStore.length + generatedFrames.length + 1,
+        storyboardId: newSb.id,
+        sceneNumber: 1,
+        sceneHeading: `Scene 01 — ${title.toUpperCase()}`,
+        frameNumber: idx + 1,
+        shotType: sType,
+        cameraAngle: sAngle,
+        shotDescription: bText,
+        imageUrl: generateSvgSketch(sType, sAngle, bText, idx + 1, chars, title),
+        displayOrder: idx + 1
+      });
+    });
+  }
+
+  newSb.totalFrames = generatedFrames.length;
+  storyboardFramesStore.push(...generatedFrames);
+
+  res.json({ data: newSb, frames: generatedFrames, message: "Visual Storyboard generated from story!" });
 });
 
 app.post('/api/storyboards/frames/:id/regenerate', (req, res) => {

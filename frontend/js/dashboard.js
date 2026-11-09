@@ -469,6 +469,11 @@ const ScreenwritingStudio = {
       // Analyze and display extracted characters and physical places
       this.analyzeAndDisplayBreakdown(synopsis, storyConcept);
 
+      // Auto-generate / synchronize Visual Storyboard based on saved story!
+      if (typeof VisualStoryboard !== 'undefined') {
+        VisualStoryboard.generateStoryboardFromStory(this.currentScreenplayId, payload);
+      }
+
       await this.loadScreenplays();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1872,116 +1877,200 @@ const VisualStoryboard = {
       this.activeStoryboard = saved.storyboard;
       this.currentFrames = saved.frames;
     } else {
-      // Seed default storyboard layout matching user mockup
-      this.generateDefaultMockShots();
+      // Auto-generate storyboard from the actual current screenplay content
+      this.generateStoryboardFromStory(spId, this.currentScreenplay);
+      return;
     }
 
     this.renderStoryboardView();
   },
 
-  generateDefaultMockShots() {
-    const spTitle = this.currentScreenplay ? this.currentScreenplay.title : "The Last Journey";
+  generateStoryboardFromStory(spId, screenplayData) {
+    const sp = screenplayData || this.currentScreenplay || {};
+    const title = sp.title || "Selected Story";
+    const genre = sp.genre || "Drama / Thriller";
+
+    // 1. Check if scenes exist in Screenwriting Studio
+    let scenes = [];
+    if (ScreenwritingStudio.currentScreenplayId === spId && ScreenwritingStudio.scenesData && ScreenwritingStudio.scenesData.length > 0) {
+      scenes = ScreenwritingStudio.scenesData;
+    } else {
+      scenes = LocalDB.get(`scenes_${spId}`, []);
+    }
+
+    // 2. Check if characters exist
+    let characters = [];
+    if (ScreenwritingStudio.currentScreenplayId === spId && ScreenwritingStudio.charactersData && ScreenwritingStudio.charactersData.length > 0) {
+      characters = ScreenwritingStudio.charactersData;
+    } else if (ScreenwritingStudio.currentBreakdownCharacters && ScreenwritingStudio.currentBreakdownCharacters.length > 0) {
+      characters = ScreenwritingStudio.currentBreakdownCharacters;
+    } else {
+      characters = LocalDB.get(`characters_${spId}`, []);
+    }
+
+    // 3. Fallback extraction from synopsis / concept
+    const rawSynopsis = sp.synopsis || document.getElementById('sp-synopsis')?.value || '';
+    const rawConcept = sp.storyConcept || document.getElementById('sp-concept')?.value || '';
+    const combinedText = (rawSynopsis + ' ' + rawConcept).replace(/<[^>]*>/g, ' ').trim();
+
     this.activeStoryboard = {
-      id: 101,
-      screenplayId: this.currentScreenplay ? this.currentScreenplay.id : 1,
-      title: spTitle,
+      id: Date.now(),
+      screenplayId: spId,
+      title: title,
+      genre: genre,
       versionNumber: 1,
-      versionName: "Revision 1"
+      versionName: "Revision 1",
+      updatedAt: new Date().toISOString()
     };
 
-    this.currentFrames = [
-      {
-        id: 1,
-        sceneNumber: 1,
-        sceneHeading: "Scene 01 — The Arrival",
-        frameNumber: 1,
-        shotType: "Wide shot",
-        cameraAngle: "Eye Level",
-        shotDescription: "Character enters railway station.",
-        imageUrl: this.createSketchSvg("Wide shot", "Eye Level", "Character enters railway station.", 1)
-      },
-      {
-        id: 2,
-        sceneNumber: 1,
-        sceneHeading: "Scene 01 — The Arrival",
-        frameNumber: 2,
-        shotType: "Close-up",
-        cameraAngle: "Low Angle",
-        shotDescription: "Character checks his watch.",
-        imageUrl: this.createSketchSvg("Close-up", "Low Angle", "Character checks his watch.", 2)
-      },
-      {
-        id: 3,
-        sceneNumber: 1,
-        sceneHeading: "Scene 01 — The Arrival",
-        frameNumber: 3,
-        shotType: "Over-the-shoulder",
-        cameraAngle: "Dutch Angle",
-        shotDescription: "He notices someone on the platform.",
-        imageUrl: this.createSketchSvg("Over-the-shoulder", "Dutch Angle", "He notices someone on the platform.", 3)
-      },
-      {
-        id: 4,
-        sceneNumber: 1,
-        sceneHeading: "Scene 01 — The Arrival",
-        frameNumber: 4,
-        shotType: "Long shot",
-        cameraAngle: "High Angle",
-        shotDescription: "Mysterious figure stands in the distance.",
-        imageUrl: this.createSketchSvg("Long shot", "High Angle", "Mysterious figure stands in the distance.", 4)
-      }
-    ];
+    const newFrames = [];
 
-    const spId = this.currentScreenplay ? this.currentScreenplay.id : 1;
+    if (scenes && scenes.length > 0) {
+      scenes.forEach((sc, scIdx) => {
+        const scNum = sc.sceneNumber || (scIdx + 1);
+        const loc = sc.location || 'INTERIOR / EXTERIOR';
+        const heading = `Scene ${String(scNum).padStart(2, '0')} — ${loc}`;
+        const actionText = sc.actions || sc.description || `Action unfolds in ${loc}.`;
+        const charName = sc.characterAppearances || (characters.length > 0 ? characters[0].name : 'Protagonist');
+
+        // Shot 1: Establishing Wide Shot tailored to location
+        newFrames.push({
+          id: newFrames.length + 1,
+          storyboardId: this.activeStoryboard.id,
+          sceneNumber: scNum,
+          sceneHeading: heading,
+          frameNumber: newFrames.length + 1,
+          shotType: "Wide shot",
+          cameraAngle: "Eye Level",
+          shotDescription: `Establishing shot of ${loc}. ${actionText.slice(0, 80)}`,
+          imageUrl: this.createSketchSvg("Wide shot", "Eye Level", actionText, scNum * 10 + 1, charName, loc)
+        });
+
+        // Shot 2: Character Emotion / Action Shot
+        newFrames.push({
+          id: newFrames.length + 1,
+          storyboardId: this.activeStoryboard.id,
+          sceneNumber: scNum,
+          sceneHeading: heading,
+          frameNumber: newFrames.length + 1,
+          shotType: "Close-up",
+          cameraAngle: "Low Angle",
+          shotDescription: `${charName}: ${actionText.length > 90 ? actionText.slice(0, 90) + '...' : actionText}`,
+          imageUrl: this.createSketchSvg("Close-up", "Low Angle", actionText, scNum * 10 + 2, charName, loc)
+        });
+      });
+    } else {
+      // Split narrative sentences into storyboard scenes
+      const sentences = combinedText.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 15);
+      const beats = sentences.length > 0 ? sentences.slice(0, 4) : [
+        `${title}: The protagonist arrives at the central conflict point.`,
+        "A hidden revelation changes the dynamic of the confrontation.",
+        "Tension spikes as characters face an immediate, crucial decision.",
+        "The scene resolves into an intense atmospheric aftermath."
+      ];
+
+      const shotTypes = ["Wide shot", "Close-up", "Over-the-shoulder", "Long shot"];
+      const angles = ["Eye Level", "Low Angle", "Dutch Angle", "High Angle"];
+
+      beats.forEach((beatText, idx) => {
+        const charObj = characters[idx % characters.length] || { name: 'Protagonist' };
+        const sType = shotTypes[idx % shotTypes.length];
+        const sAngle = angles[idx % angles.length];
+
+        newFrames.push({
+          id: idx + 1,
+          storyboardId: this.activeStoryboard.id,
+          sceneNumber: 1,
+          sceneHeading: `Scene 01 — ${title.toUpperCase()}`,
+          frameNumber: idx + 1,
+          shotType: sType,
+          cameraAngle: sAngle,
+          shotDescription: beatText,
+          imageUrl: this.createSketchSvg(sType, sAngle, beatText, idx + 1, charObj.name, title)
+        });
+      });
+    }
+
+    this.currentFrames = newFrames;
+    this.activeStoryboard.totalFrames = newFrames.length;
+
+    // Cache locally
     LocalDB.set(`storyboard_${spId}`, {
       storyboard: this.activeStoryboard,
       frames: this.currentFrames
     });
+
+    this.renderStoryboardView();
   },
 
-  createSketchSvg(shotType, cameraAngle, desc, seed) {
+  createSketchSvg(shotType, cameraAngle, desc, seed, charName = 'Protagonist', location = 'Scene') {
     const type = shotType || 'Wide shot';
     const angle = cameraAngle || 'Eye Level';
     const cleanDesc = desc || 'Cinematic shot composition';
-    const hash = Math.abs((cleanDesc + seed + angle).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
+    const cleanLoc = (location || 'INTERIOR / EXTERIOR').toUpperCase();
+    const hash = Math.abs((cleanDesc + seed + angle + cleanLoc).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0));
     const charX = 220 + (hash % 160);
-    const horizonY = 170 + (hash % 50);
+    const horizonY = 160 + (hash % 50);
 
     const isClose = type.toLowerCase().includes('close');
     const isOverShoulder = type.toLowerCase().includes('over');
+    const isNight = cleanDesc.toLowerCase().includes('night') || cleanDesc.toLowerCase().includes('dark') || cleanLoc.includes('NIGHT');
+
+    let environmentSvg = '';
+    if (cleanLoc.includes('HOSPITAL') || cleanLoc.includes('CLINIC') || cleanLoc.includes('LAB')) {
+      environmentSvg = `
+        <rect x='40' y='60' width='80' height='260' fill='none' stroke='#4b5263' stroke-width='2'/>
+        <line x1='80' y1='60' x2='80' y2='320' stroke='#333842' stroke-width='1.5'/>
+        <rect x='480' y='80' width='110' height='160' rx='4' fill='#12151b' stroke='#5c6370' stroke-width='2'/>
+        <path d='M495 160 L515 160 L525 130 L540 190 L550 150 L560 165 L575 165' fill='none' stroke='#abb2bf' stroke-width='2'/>
+        <line x1='20' y1='300' x2='620' y2='300' stroke='#3e4451' stroke-width='2'/>
+      `;
+    } else if (cleanLoc.includes('ROOFTOP') || cleanLoc.includes('STREET') || cleanLoc.includes('ALLEY') || cleanLoc.includes('CITY')) {
+      environmentSvg = `
+        <rect x='30' y='80' width='120' height='260' fill='#12151c' stroke='#3e4451' stroke-width='2'/>
+        <rect x='180' y='120' width='90' height='220' fill='#161922' stroke='#4b5263' stroke-width='1.8'/>
+        <rect x='460' y='60' width='140' height='280' fill='#141720' stroke='#3e4451' stroke-width='2'/>
+        <line x1='30' y1='280' x2='610' y2='280' stroke='#abb2bf' stroke-width='2'/>
+        <line x1='30' y1='260' x2='610' y2='260' stroke='#5c6370' stroke-width='1.5'/>
+      `;
+    } else {
+      environmentSvg = `
+        <path d='M50 50 L50 350 M120 70 L120 330 M520 70 L520 330 M590 50 L590 350' stroke='#3e4451' stroke-width='2.5' opacity='0.7'/>
+        <path d='M50 80 Q320 30 590 80' fill='none' stroke='#4b5263' stroke-width='2' opacity='0.6'/>
+        <line x1='20' y1='310' x2='620' y2='310' stroke='#5c6370' stroke-width='2'/>
+      `;
+    }
 
     let figureSvg = '';
     if (isClose) {
       figureSvg = `
-        <circle cx='320' cy='140' r='60' fill='#1e222b' stroke='#abb2bf' stroke-width='2'/>
-        <path d='M260 135 Q320 70 380 135 Q390 80 320 75 Q250 80 260 135' fill='#5c6370'/>
-        <path d='M290 135 Q320 140 350 135' stroke='#abb2bf' stroke-width='2' fill='none'/>
-        <circle cx='305' cy='145' r='4' fill='#fff'/><circle cx='335' cy='145' r='4' fill='#fff'/>
-        <path d='M320 145 L318 170 L328 170' stroke='#c8ccd4' stroke-width='2' fill='none'/>
-        <path d='M308 185 Q320 190 332 185' stroke='#c8ccd4' stroke-width='2' fill='none'/>
-        <path d='M210 260 L260 200 L320 225 L380 200 L430 260 L460 360 L180 360 Z' fill='#16191f' stroke='#5c6370' stroke-width='2'/>
-        <path d='M260 200 L295 290 M380 200 L345 290' stroke='#4b5263' stroke-width='2'/>
+        <circle cx='320' cy='135' r='55' fill='#1b1f27' stroke='#abb2bf' stroke-width='2.2'/>
+        <path d='M265 130 Q320 65 375 130 Q385 75 320 70 Q255 75 265 130' fill='#5c6370'/>
+        <path d='M295 132 Q320 137 345 132' stroke='#abb2bf' stroke-width='2' fill='none'/>
+        <circle cx='305' cy='142' r='4' fill='#fff'/><circle cx='335' cy='142' r='4' fill='#fff'/>
+        <path d='M320 142 L317 165 L327 165' stroke='#c8ccd4' stroke-width='2' fill='none'/>
+        <path d='M308 180 Q320 185 332 180' stroke='#c8ccd4' stroke-width='2.2' fill='none'/>
+        <path d='M220 250 L265 195 L320 220 L375 195 L420 250 L450 360 L190 360 Z' fill='#161920' stroke='#5c6370' stroke-width='2'/>
+        <path d='M265 195 L295 280 M375 195 L345 280' stroke='#4b5263' stroke-width='2'/>
+        <text x='320' y='275' font-family='sans-serif' font-size='10' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
       `;
     } else if (isOverShoulder) {
       figureSvg = `
-        <!-- Foreground silhouette -->
-        <path d='M20 160 Q90 120 140 160 L180 360 L10 360 Z' fill='#0a0c0f' stroke='#3e4451' stroke-width='2'/>
-        <circle cx='95' cy='130' r='35' fill='#0a0c0f'/>
-        <!-- Target figure -->
-        <circle cx='${charX}' cy='160' r='24' fill='#1e222b' stroke='#abb2bf' stroke-width='2'/>
-        <path d='M${charX - 25} 184 L${charX + 25} 184 L${charX + 30} 320 L${charX - 30} 320 Z' fill='#282c34' stroke='#5c6370' stroke-width='1.5'/>
-        <line x1='${charX - 10}' y1='320' x2='${charX - 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
-        <line x1='${charX + 10}' y1='320' x2='${charX + 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+        <path d='M20 150 Q90 110 140 150 L180 360 L10 360 Z' fill='#0a0c0f' stroke='#3e4451' stroke-width='2'/>
+        <circle cx='95' cy='120' r='35' fill='#0a0c0f'/>
+        <circle cx='${charX}' cy='155' r='24' fill='#1b1f27' stroke='#abb2bf' stroke-width='2'/>
+        <path d='M${charX - 25} 179 L${charX + 25} 179 L${charX + 30} 310 L${charX - 30} 310 Z' fill='#242832' stroke='#5c6370' stroke-width='1.8'/>
+        <line x1='${charX - 10}' y1='310' x2='${charX - 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+        <line x1='${charX + 10}' y1='310' x2='${charX + 10}' y2='360' stroke='#828997' stroke-width='3.5'/>
+        <text x='${charX}' y='245' font-family='sans-serif' font-size='9' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
       `;
     } else {
       figureSvg = `
-        <!-- Train station pillars / perspective arches -->
-        <path d='M60 40 L60 360 M120 70 L120 330 M520 70 L520 330 M580 40 L580 360' stroke='#3b404d' stroke-width='3' opacity='0.6'/>
-        <path d='M60 90 Q320 20 580 90' fill='none' stroke='#4b5263' stroke-width='2' opacity='0.5'/>
-        <circle cx='${charX}' cy='${horizonY - 25}' r='8' fill='#c8ccd4'/>
-        <path d='M${charX - 12} ${horizonY - 17} L${charX + 12} ${horizonY - 17} L${charX + 15} ${horizonY + 35} L${charX - 15} ${horizonY + 35} Z' fill='#828997'/>
-        <line x1='${charX - 6}' y1='${horizonY + 35}' x2='${charX - 6}' y2='${horizonY + 65}' stroke='#abb2bf' stroke-width='3.5'/>
-        <line x1='${charX + 6}' y1='${horizonY + 35}' x2='${charX + 6}' y2='${horizonY + 65}' stroke='#abb2bf' stroke-width='3.5'/>
+        <circle cx='${charX}' cy='${horizonY - 22}' r='10' fill='#c8ccd4'/>
+        <path d='M${charX - 14} ${horizonY - 12} L${charX + 14} ${horizonY - 12} L${charX + 18} ${horizonY + 45} L${charX - 18} ${horizonY + 45} Z' fill='#282c34' stroke='#828997' stroke-width='1.8'/>
+        <line x1='${charX - 7}' y1='${horizonY + 45}' x2='${charX - 7}' y2='${horizonY + 85}' stroke='#abb2bf' stroke-width='4'/>
+        <line x1='${charX + 7}' y1='${horizonY + 45}' x2='${charX + 7}' y2='${horizonY + 85}' stroke='#abb2bf' stroke-width='4'/>
+        <text x='${charX}' y='${horizonY + 22}' font-family='sans-serif' font-size='9' font-weight='bold' fill='#e5c07b' text-anchor='middle'>${charName.toUpperCase()}</text>
       `;
     }
 
@@ -1991,27 +2080,24 @@ const VisualStoryboard = {
           <path d='M0 8 L8 0 M0 0 L8 8' stroke='#282c34' stroke-width='0.6' opacity='0.4'/>
         </pattern>
         <linearGradient id='noirBg_${seed}' x1='0' y1='0' x2='0' y2='1'>
-          <stop offset='0%' stop-color='#0f1115'/>
-          <stop offset='50%' stop-color='#191c22'/>
+          <stop offset='0%' stop-color='${isNight ? '#07080a' : '#0f1115'}'/>
+          <stop offset='50%' stop-color='${isNight ? '#0d0f14' : '#191c22'}'/>
           <stop offset='100%' stop-color='#0a0c0f'/>
         </linearGradient>
       </defs>
       <rect width='640' height='380' fill='url(#noirBg_${seed})'/>
       <rect width='640' height='380' fill='url(#pGrad_${seed})'/>
-      <!-- Director grid frame -->
       <rect x='18' y='16' width='604' height='348' fill='none' stroke='#3e4451' stroke-width='1.5' stroke-dasharray='10,4' opacity='0.35'/>
-      <!-- Horizon & Perspective Lines -->
-      <line x1='18' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
-      <line x1='622' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.4'/>
-      <line x1='18' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
-      <line x1='622' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.5'/>
+      <line x1='18' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+      <line x1='622' y1='16' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.2' opacity='0.35'/>
+      <line x1='18' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
+      <line x1='622' y1='364' x2='${charX}' y2='${horizonY}' stroke='#4f5666' stroke-width='1.5' opacity='0.45'/>
       <line x1='18' y1='${horizonY}' x2='622' y2='${horizonY}' stroke='#5c6370' stroke-width='0.8' stroke-dasharray='4,4' opacity='0.35'/>
+      ${environmentSvg}
       ${figureSvg}
-      <!-- Cinematic Crosshatching overlay -->
       <path d='M18 320 L150 364 M28 310 L160 354 M38 300 L170 344' stroke='#abb2bf' stroke-width='0.8' opacity='0.25'/>
-      <!-- Director Slate -->
-      <rect x='28' y='325' width='240' height='26' rx='3' fill='#0b0d10' fill-opacity='0.88' stroke='#4b5263' stroke-width='0.8'/>
-      <text x='36' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${angle.toUpperCase()}</text>
+      <rect x='28' y='325' width='280' height='26' rx='3' fill='#0b0d10' fill-opacity='0.9' stroke='#4b5263' stroke-width='0.8'/>
+      <text x='36' y='342' font-family='monospace' font-size='10' font-weight='bold' fill='#e5c07b'>DIR SLATE // ${type.toUpperCase()} · ${cleanLoc.slice(0, 15)}</text>
     </svg>`;
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
   },
