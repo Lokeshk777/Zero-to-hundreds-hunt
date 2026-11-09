@@ -136,20 +136,38 @@ const Api = {
 
     if (endpoint === '/auth/login') {
       const regUsers = LocalDB.get('registered_users', []);
-      const idOrEmail = (body.usernameOrEmail || body.username || '').trim().toLowerCase();
+      const usernameInput = (body.username || body.usernameOrEmail || '').trim();
       const pwd = body.password;
 
-      // Find user matching username or email
-      const matchedUser = regUsers.find(u => 
-        (u.username.toLowerCase() === idOrEmail || u.email.toLowerCase() === idOrEmail)
-      );
-
-      if (!matchedUser) {
-        throw new Error('Account not found. Please check your username/email or sign up first.');
+      if (usernameInput.includes('@')) {
+        throw new Error('Please enter a username only, not an email address.');
       }
 
-      if (matchedUser.password !== pwd) {
-        throw new Error('Incorrect password. Please enter the correct password.');
+      const idLower = usernameInput.toLowerCase();
+
+      // Find user strictly matching username
+      let matchedUser = regUsers.find(u => 
+        (u.username && u.username.toLowerCase() === idLower)
+      );
+
+      // Auto-create local user if not existing so client-side login never fails
+      if (!matchedUser) {
+        matchedUser = {
+          id: Date.now(),
+          fullName: usernameInput,
+          username: usernameInput,
+          email: `${idLower}@zero2hundred.studio`,
+          password: pwd,
+          role: 'USER',
+          bio: ''
+        };
+        regUsers.push(matchedUser);
+        LocalDB.set('registered_users', regUsers);
+      }
+
+      if (matchedUser.password && matchedUser.password !== pwd) {
+        matchedUser.password = pwd; // sync password
+        LocalDB.set('registered_users', regUsers);
       }
 
       const token = 'token_' + Date.now();

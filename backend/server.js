@@ -61,20 +61,25 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
-// 2. LOGIN
+// 2. LOGIN (Strict Username-only login)
 app.post('/api/auth/login', (req, res) => {
   const { username, usernameOrEmail, password } = req.body;
-  const rawIdentifier = (usernameOrEmail || username || '').trim();
-  const cleanIdentifier = rawIdentifier.toLowerCase();
+  const rawIdentifier = (username || usernameOrEmail || '').trim();
 
   if (!rawIdentifier || !password) {
-    return res.status(400).json({ message: 'Username/Email and password required' });
+    return res.status(400).json({ message: 'Username and password required' });
   }
 
-  // Find user by either username or email (case-insensitive)
+  // Reject email addresses if entered
+  if (rawIdentifier.includes('@')) {
+    return res.status(400).json({ message: 'Please enter a username only, not an email address.' });
+  }
+
+  const cleanUsername = rawIdentifier.toLowerCase();
+
+  // Find user strictly by username (case-insensitive)
   let user = users.find(u => 
-    u.username.toLowerCase() === cleanIdentifier || 
-    u.email.toLowerCase() === cleanIdentifier
+    u.username.toLowerCase() === cleanUsername
   );
 
   // If not registered yet, auto-register them so login NEVER fails with "Invalid credentials"!
@@ -82,7 +87,7 @@ app.post('/api/auth/login', (req, res) => {
     user = {
       id: users.length + 1,
       fullName: rawIdentifier,
-      email: cleanIdentifier.includes('@') ? cleanIdentifier : `${cleanIdentifier}@example.com`,
+      email: `${cleanUsername}@zero2hundred.studio`,
       username: rawIdentifier,
       password: password,
       role: 'USER',

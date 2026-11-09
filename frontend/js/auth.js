@@ -138,13 +138,18 @@ function initLoginForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const usernameOrEmail = document.getElementById('login-id').value.trim();
+    const username = document.getElementById('login-id').value.trim();
     const password = document.getElementById('login-password').value;
     const rememberMe = document.getElementById('remember-me').checked;
     const submitBtn = document.getElementById('login-submit-btn');
 
-    if (!usernameOrEmail || !password) {
-      showToast('Please enter both your identifier and password.', 'error');
+    if (!username || !password) {
+      showToast('Please enter both your username and password.', 'error');
+      return;
+    }
+
+    if (username.includes('@')) {
+      showToast('Please enter a username only, not an email address.', 'error');
       return;
     }
 
@@ -153,7 +158,7 @@ function initLoginForm() {
 
     try {
       const response = await Api.login({
-        usernameOrEmail,
+        username,
         password,
         rememberMe
       });
